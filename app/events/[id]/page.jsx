@@ -1,12 +1,13 @@
 'use client'
 import { use, useEffect, useState } from 'react'
-import { Card, Form, Input, Button, Checkbox, message, Descriptions, Spin, Typography } from 'antd'
+import { Card, Form, Input, Button, Checkbox, App, Descriptions, Spin, Typography } from 'antd'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 
 const { Title } = Typography
 
 export default function EventDetailPage({ params }) {
+  const { message } = App.useApp()
   const { id } = use(params)
   const [event, setEvent] = useState(null)
   const [hrStream, setHrStream] = useState([])

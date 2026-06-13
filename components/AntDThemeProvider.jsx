@@ -1,5 +1,5 @@
 'use client'
-import { ConfigProvider, theme as antdTheme } from 'antd'
+import { App, ConfigProvider, theme as antdTheme } from 'antd'
 import { useTheme } from '@/contexts/ThemeContext'
 import appTheme from '@/theme.config'
 
@@ -12,7 +12,7 @@ export default function AntDThemeProvider({ children }) {
         algorithm: dark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
       }}
     >
-      {children}
+      <App>{children}</App>
     </ConfigProvider>
   )
 }

@@ -11,8 +11,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" data-theme="light">
+      <body suppressHydrationWarning>
         <ThemeProvider>
           <AntDThemeProvider>
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

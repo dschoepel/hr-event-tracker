@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Table, Tag, Card, message, Typography } from 'antd'
+import { Table, Tag, Card, App, Typography } from 'antd'
 import Link from 'next/link'
 
 const { Title } = Typography
@@ -29,6 +29,7 @@ const columns = [
 ]
 
 export default function EventHistoryPage() {
+  const { message } = App.useApp()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
 

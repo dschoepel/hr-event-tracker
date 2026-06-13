@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Upload, Button, Card, Table, Tag, message, Typography } from 'antd'
+import { Upload, Button, Card, Table, Tag, App, Typography } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 
 const { Title } = Typography
@@ -14,6 +14,7 @@ const columns = [
 ]
 
 export default function UploadPage() {
+  const { message } = App.useApp()
   const [candidates, setCandidates] = useState([])
   const [uploading, setUploading] = useState(false)
 
