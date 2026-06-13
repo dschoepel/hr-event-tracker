@@ -9,7 +9,7 @@ const columns = [
   { title: 'Peak HR (bpm)', dataIndex: 'peak_hr' },
   { title: 'Jump (bpm)', dataIndex: 'jump_magnitude' },
   { title: 'Drop (bpm)', dataIndex: 'drop_magnitude' },
-  { title: 'Duration (s)', dataIndex: 'duration_seconds', render: v => Math.round(v) },
+  { title: 'Duration', dataIndex: 'duration_seconds', render: v => { const s = Math.round(v); return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s` } },
   { title: 'Method', dataIndex: 'detection_method', render: v => <Tag color="blue">{v}</Tag> },
 ]
 
