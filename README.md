@@ -1,6 +1,6 @@
-# __APP_NAME__
+# hr-event-tracker
 
-__APP_DESCRIPTION__
+Tachycardia event detection from cycling GPX files
 
 ## Development
 

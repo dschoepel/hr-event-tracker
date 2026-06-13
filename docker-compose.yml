@@ -6,12 +6,12 @@ services:
   # Tier 2: PostgreSQL for local development
   db:
     image: postgres:17-alpine
-    container_name: __APP_NAME__-db-dev
+    container_name: hr-event-tracker-db-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
-      POSTGRES_DB: ${POSTGRES_DB:-__APP_NAME__}
+      POSTGRES_DB: ${POSTGRES_DB:-hr-event-tracker}
     ports:
       - "5432:5432"
     volumes:

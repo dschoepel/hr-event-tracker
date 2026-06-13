@@ -1,10 +1,10 @@
 ---
 name: deploy
-description: Deploy a specific version of __APP_NAME__ to the VPS after GitHub Actions has built the image. Usage: /deploy [v1.2.0]
+description: Deploy a specific version of hr-event-tracker to the VPS after GitHub Actions has built the image. Usage: /deploy [v1.2.0]
 disable-model-invocation: true
 ---
 
-You are executing the `/deploy` skill for __APP_NAME__.
+You are executing the `/deploy` skill for hr-event-tracker.
 
 $ARGUMENTS contains the version tag to deploy (e.g. `v1.2.0`). If empty, read the version from `VERSION.md`.
 
@@ -18,7 +18,7 @@ $ARGUMENTS contains the version tag to deploy (e.g. `v1.2.0`). If empty, read th
 
 4. **Show GitHub Actions URL**: Print:
    ```
-   GitHub Actions: https://github.com/__GITHUB_USER__/__APP_NAME__/actions
+   GitHub Actions: https://github.com/dschoepel/hr-event-tracker/actions
    ```
    Ask the user: "Has the build for <tag> completed successfully? (yes/no)"
    If no, stop here. The image must be built before deploying.
@@ -45,7 +45,7 @@ $ARGUMENTS contains the version tag to deploy (e.g. `v1.2.0`). If empty, read th
 
 9. **Report success**:
    ```
-   ✓ __APP_NAME__ <tag> deployed to https://<DOMAIN>
+   ✓ hr-event-tracker <tag> deployed to https://<DOMAIN>
    ```
 
 ## If deploy fails

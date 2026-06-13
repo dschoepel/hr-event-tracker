@@ -12,12 +12,12 @@ if [[ -f "${SCRIPT_DIR}/../../.env.deploy" ]]; then
 fi
 
 # Config with defaults
-APP_NAME="${APP_NAME:-__APP_NAME__}"
+APP_NAME="${APP_NAME:-hr-event-tracker}"
 DOMAIN="${DOMAIN:-localhost}"
 COMPOSE_SERVICE="${COMPOSE_SERVICE:-app}"
 DEPLOY_PATH="${DEPLOY_PATH:-/data/${APP_NAME}}"
 MAINTENANCE_FLAG="${MAINTENANCE_FLAG:-/data/swag/nginx/${APP_NAME}.maintenance.flag}"
-IMAGE="ghcr.io/__GITHUB_USER__/${APP_NAME}"
+IMAGE="ghcr.io/dschoepel/${APP_NAME}"
 HEALTH_TIMEOUT=90
 
 TAG="${1:-${IMAGE_TAG:-latest}}"

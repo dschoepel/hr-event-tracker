@@ -1,7 +1,7 @@
-# Architecture — __APP_NAME__
+# Architecture — hr-event-tracker
 
 ## Overview
-__APP_DESCRIPTION__
+Tachycardia event detection from cycling GPX files
 
 **Tier**: <!-- 1 (SQLite) | 2 (PostgreSQL + Auth.js) | 3 (Supabase) -->
 **UI**: <!-- Ant Design v6 | Tailwind CSS -->

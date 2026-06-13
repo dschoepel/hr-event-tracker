@@ -1,4 +1,4 @@
-# CLAUDE.md — __APP_NAME__
+# CLAUDE.md — hr-event-tracker
 
 This file provides guidance to Claude Code when working in this repository.
 

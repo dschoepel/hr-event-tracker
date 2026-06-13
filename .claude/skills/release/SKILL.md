@@ -4,7 +4,7 @@ description: Bump the version, update CHANGELOG.md, create a git tag, and push t
 disable-model-invocation: false
 ---
 
-You are executing the `/release` skill for __APP_NAME__. Orchestrate a full release:
+You are executing the `/release` skill for hr-event-tracker. Orchestrate a full release:
 
 1. **Check working tree**: Run `git status`. Confirm there are no uncommitted changes. If there are, stop and ask the user to commit or stash them first.
 
@@ -32,6 +32,6 @@ You are executing the `/release` skill for __APP_NAME__. Orchestrate a full rele
    This triggers GitHub Actions → builds Docker image → pushes to GHCR.
 
 9. **Report**: Print the GitHub Actions URL so the user can monitor the build:
-   `https://github.com/__GITHUB_USER__/__APP_NAME__/actions`
+   `https://github.com/dschoepel/hr-event-tracker/actions`
 
 After pushing, the CI build takes 2–5 minutes. When it's green, run `/deploy` to deploy to the VPS.

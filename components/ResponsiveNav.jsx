@@ -1,15 +1,15 @@
 'use client'
 import { useState } from 'react'
-import { Layout, Menu, Drawer, Button } from 'antd'
-import { MenuOutlined } from '@ant-design/icons'
+import { Layout, Menu, Drawer, Button, Space } from 'antd'
+import { MenuOutlined, HeartFilled } from '@ant-design/icons'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const { Header } = Layout
 
-// Add your nav items here — key should match the href
 const NAV_ITEMS = [
-  { key: '/', label: <Link href="/">Home</Link> },
+  { key: '/', label: <Link href="/">Upload</Link> },
+  { key: '/events', label: <Link href="/events">Event History</Link> },
 ]
 
 export default function ResponsiveNav() {
@@ -25,17 +25,12 @@ export default function ResponsiveNav() {
         background: 'var(--color-header-bg)',
       }}
     >
-      <span
-        style={{
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 17,
-          marginRight: 32,
-          userSelect: 'none',
-        }}
-      >
-        __APP_NAME__
-      </span>
+      <Space align="center" style={{ marginRight: 32 }}>
+        <HeartFilled style={{ fontSize: 20, color: '#ff8a80', filter: 'drop-shadow(0 0 4px #ff5252aa)' }} />
+        <span style={{ color: '#fff', fontWeight: 700, fontSize: 17, userSelect: 'none' }}>
+          HR Event Tracker
+        </span>
+      </Space>
 
       <Menu
         theme="dark"
@@ -55,7 +50,7 @@ export default function ResponsiveNav() {
       />
 
       <Drawer
-        title="__APP_NAME__"
+        title="HR Event Tracker"
         placement="left"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}

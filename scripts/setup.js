@@ -110,4 +110,4 @@ console.log('\nRunning npm install...')
 execSync('npm install', { stdio: 'inherit', cwd: ROOT })
 
 console.log('\n✓ Setup complete!')
-console.log('  Next: replace all __APP_NAME__, __APP_DESCRIPTION__, __GITHUB_USER__ placeholders')
+console.log('  Next: replace all hr-event-tracker, Tachycardia event detection from cycling GPX files, dschoepel placeholders')

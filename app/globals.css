@@ -1,9 +1,9 @@
 /* CSS custom properties — updated by /new-project skill */
 :root {
-  --color-primary: __PRIMARY_COLOR__;
-  --color-primary-hover: __PRIMARY_HOVER_COLOR__;
-  --color-bg: __BG_COLOR__;
-  --color-header-bg: __HEADER_BG_COLOR__;
+  --color-primary: #d32f2f;
+  --color-primary-hover: #ef5350;
+  --color-bg: #fff5f5;
+  --color-header-bg: #7f0000;
   --color-muted: #888;
   --color-text: #1a1a1a;
 }

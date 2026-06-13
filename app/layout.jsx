@@ -5,8 +5,8 @@ import AppFooter from '@/components/AppFooter'
 import './globals.css'
 
 export const metadata = {
-  title: '__APP_NAME__',
-  description: '__APP_DESCRIPTION__',
+  title: 'HR Event Tracker',
+  description: 'Tachycardia event detection from cycling GPX files',
 }
 
 export default function RootLayout({ children }) {

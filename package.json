@@ -1,6 +1,7 @@
 {
-  "name": "__APP_NAME__",
-  "version": "0.1.0",
+  "name": "hr-event-tracker",
+  "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,26 +10,19 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:init": "node lib/db.js"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.6.1",
+    "antd": "^6.4.4",
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "antd": "^6.4.4",
-    "@ant-design/icons": "^5.6.1",
-    "next-auth": "^5.0.0-beta.25",
-    "@auth/drizzle-adapter": "^1.7.4",
-    "drizzle-orm": "^0.44.1",
-    "pg": "^8.16.0",
-    "@supabase/supabase-js": "^2.49.4",
-    "@supabase/ssr": "^0.6.1"
+    "recharts": "^3.8.1",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.1",
-    "tailwindcss": "^4.1.0",
-    "postcss": "^8.5.0",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.28.0",
     "eslint-config-next": "^15.3.0"
   }

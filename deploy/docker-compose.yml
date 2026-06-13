@@ -4,13 +4,13 @@
 # Tier 3: see deploy/supabase/ for the full Supabase stack
 services:
   app:
-    image: ghcr.io/__GITHUB_USER__/__APP_NAME__:latest
-    container_name: __APP_NAME__
+    image: ghcr.io/dschoepel/hr-event-tracker:latest
+    container_name: hr-event-tracker
     restart: unless-stopped
     expose:
       - "${APP_PORT:-3000}"
     env_file:
-      - /data/__APP_NAME__/.env.production
+      - /data/hr-event-tracker/.env.production
     networks:
       - proxy_net
     read_only: true
@@ -28,10 +28,10 @@ services:
   # Tier 2: uncomment for PostgreSQL
   # db:
   #   image: postgres:17-alpine
-  #   container_name: __APP_NAME__-db
+  #   container_name: hr-event-tracker-db
   #   restart: unless-stopped
   #   env_file:
-  #     - /data/__APP_NAME__/.env.production
+  #     - /data/hr-event-tracker/.env.production
   #   volumes:
   #     - pg_data:/var/lib/postgresql/data
   #   networks:
