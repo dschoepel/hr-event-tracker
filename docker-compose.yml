@@ -1,0 +1,21 @@
+# Development: starts supporting services only — app runs with `npm run dev`
+# Tier 1: nothing to start (SQLite is a local file)
+# Tier 2: `docker-compose up` starts postgres
+# Tier 3: `docker-compose up` starts the full Supabase stack (see deploy/docker-compose.yml)
+services:
+  # Tier 2: PostgreSQL for local development
+  db:
+    image: postgres:17-alpine
+    container_name: __APP_NAME__-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-__APP_NAME__}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:

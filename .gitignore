@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+
+# Env files
+.env
+.env.local
+.env.*.local
+.env.deploy
+
+# SQLite (Tier 1)
+*.db
+*.db-shm
+*.db-wal
+
+# Debug
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Claude local
+CLAUDE.local.md

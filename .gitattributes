@@ -1,0 +1,9 @@
+# Normalize line endings
+* text=auto
+
+# Shell scripts must stay LF or they break on Linux
+*.sh text eol=lf
+
+# Windows-specific files can be CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
