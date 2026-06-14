@@ -5,16 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
 ## [1.0.1] - 2026-06-14
+
 ### Added
+
 - Frontier X2 Session Ref: Open (new tab) and Preview (iframe) buttons via Space.Compact
 - Preview iframe with loading spinner and Close toggle
 - Chart loading spinner with description while Recharts renders
 - Back to history link at top of event detail page
 
 ### Changed
+
 - Confirmed column now shows for single-event rides in history table
 - History ride table shows column headers (Confirmed, Actions)
 - Chart x-axis formatted as M:SS / H:MM:SS instead of Xm Ys
@@ -25,7 +26,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - nginx config added for hr-event-tracker.schoepels.com
 
 ## [1.0.0] - 2026-06-14
+
 ### Added
+
 - GPX file upload with HR spike detection (auto-detection algorithm)
 - Event history page grouped by month → ride → events, expandable at each level
 - Event detail page with HR + power chart (smoothed 30s rolling average for power)
@@ -36,6 +39,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - FaHeartbeat icon in navbar and SVG favicon
 
 ### Changed
+
 - Detection algorithm uses peak-vs-baseline threshold (not trigger-vs-baseline) to catch gradual-onset SVT
 - Settle scan searches full remaining stream for true HR recovery point
 - Sensor dropout values (HR < 20) filtered from stream and settle scan
