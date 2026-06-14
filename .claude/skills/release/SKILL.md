@@ -18,7 +18,14 @@ You are executing the `/release` skill for hr-event-tracker. Orchestrate a full 
    - Insert a new empty `## [Unreleased]` section above it
    - If `[Unreleased]` has no content, add `### Changed\n- Version bump` before the dated section
 
-5. **Update RELEASE.md**: Extract the just-dated section from CHANGELOG.md and **prepend** it to the top of the existing RELEASE.md content. Do not replace the file — read the current contents first, then write the new release section followed by a blank line and the previous contents. This allows RELEASE.md to accumulate all releases for use as GitHub release notes.
+5. **Update RELEASE.md**: Prepend the new release section to the top of the existing RELEASE.md content. Do not replace the file — read the current contents first, then write the new section followed by a blank line and the previous contents.
+
+   Write the release notes in **user-facing language**, not technical changelog prose:
+   - Focus on what the user gains, not what files or functions changed
+   - Use plain English: "You can now…", "Events now show…", "Fixed an issue where…"
+   - Group under headings like "What's New", "Improvements", "Bug Fixes" — skip any heading that has no entries
+   - Avoid implementation details (file names, function names, config keys) unless they are meaningful to the user
+   - For the very first release, include a brief description of what the app does before listing features
 
 6. **Commit**: Stage and commit all three files:
    ```
