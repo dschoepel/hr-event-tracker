@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-06-14
+### Fixed
+- Container healthcheck now passes — Next.js was binding only to the container's internal IP (because Docker sets HOSTNAME to the container ID). Explicitly setting HOSTNAME=0.0.0.0 in the image makes the server bind to all interfaces as expected.
+
 ## [1.0.2] - 2026-06-14
 ### Fixed
 - SVT event duration no longer extends into normal post-event riding — settle scan stops once HR recovers to within 20 bpm of onset HR

@@ -1,3 +1,10 @@
+## [1.0.3] - 2026-06-14
+
+### Bug Fixes
+- **Container health check is now green.** The app was reachable but Portainer was reporting it as unhealthy. The root cause: Docker automatically sets a `HOSTNAME` environment variable to the container ID, and Next.js was using that to bind the server to just the container's internal IP rather than all interfaces. The health check (which uses the loopback address) couldn't reach it. Fixed by explicitly telling the server to listen on all interfaces.
+
+---
+
 ## [1.0.2] - 2026-06-14
 
 ### Bug Fixes
