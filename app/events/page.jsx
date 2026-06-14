@@ -180,7 +180,7 @@ export default function EventHistoryPage() {
 
   const rideColumns = [
     {
-      title: 'Ride',
+      title: '',
       dataIndex: 'label',
       render: (label, r) => (
         <span>
@@ -190,10 +190,18 @@ export default function EventHistoryPage() {
       ),
     },
     {
-      title: 'Events',
+      title: '',
       dataIndex: 'count',
       width: 90,
       render: count => <Badge count={count} color="#d32f2f" showZero />,
+    },
+    {
+      title: 'Confirmed',
+      key: 'confirmed',
+      width: 110,
+      render: (_, r) => r.count === 1
+        ? <Tag color={r.events[0].confirmed ? 'success' : 'default'}>{r.events[0].confirmed ? 'Yes' : 'No'}</Tag>
+        : null,
     },
     {
       title: 'Actions',
@@ -288,7 +296,6 @@ export default function EventHistoryPage() {
                 dataSource={month.rides}
                 pagination={false}
                 size="small"
-                showHeader={false}
                 expandable={{
                   defaultExpandAllRows: true,
                   rowExpandable: ride => ride.count > 1,

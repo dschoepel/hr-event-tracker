@@ -1,12 +1,22 @@
 'use client'
 import { use, useEffect, useState } from 'react'
-import { Card, Form, Input, Button, Checkbox, App, Descriptions, Spin, Typography } from 'antd'
+import { Card, Form, Input, Button, Checkbox, App, Descriptions, Spin, Typography, Space } from 'antd'
+const { Compact } = Space
+import { LinkOutlined, EyeOutlined } from '@ant-design/icons'
 import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 
 const { Title } = Typography
 
 const fmtSec = s => s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`
+const fmtTime = s => {
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  return h > 0
+    ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+    : `${m}:${String(sec).padStart(2, '0')}`
+}
 
 function smooth30s(stream) {
   const half = 15
@@ -26,6 +36,9 @@ export default function EventDetailPage({ params }) {
   const [event, setEvent] = useState(null)
   const [hrStream, setHrStream] = useState([])
   const [loading, setLoading] = useState(true)
+  const [chartReady, setChartReady] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const [form] = Form.useForm()
 
   useEffect(() => {
@@ -42,6 +55,13 @@ export default function EventDetailPage({ params }) {
   useEffect(() => {
     if (event) form.setFieldsValue({ notes: event.notes, frontier_session_ref: event.frontier_session_ref, confirmed: !!event.confirmed })
   }, [event, form])
+
+  useEffect(() => {
+    if (hrStream.length > 0) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setChartReady(true)))
+    }
+  }, [hrStream])
+
 
   const handleSave = async (values) => {
     try {
@@ -62,6 +82,9 @@ export default function EventDetailPage({ params }) {
 
   return (
     <Card>
+      <div style={{ marginBottom: 8 }}>
+        <Link href="/events">← Back to history</Link>
+      </div>
       <Title level={3}>{event.ride_name ?? `Event #${id}`}</Title>
       {(event.ride_start_time || event.created_at) && <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>{event.ride_start_time ? new Date(new Date(event.ride_start_time).getTime() + event.start_time_seconds * 1000).toLocaleString() : new Date(event.created_at + 'Z').toLocaleString()}</Typography.Text>}
       <Typography.Paragraph style={{ fontSize: 15, marginBottom: event.data_truncated ? 4 : 16 }}>
@@ -79,16 +102,18 @@ export default function EventDetailPage({ params }) {
       </Descriptions>
 
       {hrStream.length > 0 && (
-        <ResponsiveContainer width="100%" height={300}>
+        <Spin spinning={!chartReady} description="Loading chart…" size="large">
+          <div style={{ height: 300, marginBottom: 24 }}>
+          {chartReady && <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={smooth30s(hrStream)}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="t" tickFormatter={fmtSec} label={{ value: 'Time', position: 'insideBottom', offset: -5 }} />
+            <XAxis dataKey="t" tickFormatter={fmtTime} label={{ value: 'Time', position: 'insideBottom', offset: -5 }} />
             <YAxis yAxisId="hr" label={{ value: 'HR (bpm)', angle: -90, position: 'insideLeft' }} domain={['auto', 'auto']} />
             {hrStream.some(p => p.watts != null) && (
               <YAxis yAxisId="power" orientation="right" label={{ value: 'Power (W)', angle: 90, position: 'insideRight' }} domain={['auto', 'auto']} />
             )}
             <Tooltip
-              labelFormatter={fmtSec}
+              labelFormatter={fmtTime}
               formatter={(v, name) => name === 'Power' ? [`${v} W`, 'Power'] : [`${v} bpm`, 'HR']}
             />
             <Legend />
@@ -106,15 +131,58 @@ export default function EventDetailPage({ params }) {
               <Area yAxisId="power" type="monotone" dataKey="watts" name="Power" dot={false} stroke="#90caf9" strokeWidth={1.5} fill="#90caf9" fillOpacity={0.25} />
             )}
           </ComposedChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>}
+          </div>
+        </Spin>
       )}
 
       <Form form={form} layout="vertical" onFinish={handleSave} style={{ marginTop: 24 }}>
         <Form.Item name="notes" label="Notes">
           <Input.TextArea rows={3} />
         </Form.Item>
-        <Form.Item name="frontier_session_ref" label="Frontier X2 Session Ref">
-          <Input placeholder="ECG session ID (optional)" />
+        <Form.Item noStyle shouldUpdate={(prev, curr) => prev.frontier_session_ref !== curr.frontier_session_ref}>
+          {({ getFieldValue }) => {
+            const ref = getFieldValue('frontier_session_ref')
+            const isUrl = ref?.startsWith('http')
+            return (
+              <>
+                <Form.Item label="Frontier X2 Session Ref">
+                  <Compact style={{ width: '100%' }}>
+                    <Form.Item name="frontier_session_ref" noStyle>
+                      <Input placeholder="https://app.frontierxapp.com/shared-workout/..." />
+                    </Form.Item>
+                    {isUrl && (
+                      <>
+                        <Button href={ref} target="_blank" rel="noopener noreferrer" icon={<LinkOutlined />}>Open</Button>
+                        <Button
+                          icon={<EyeOutlined />}
+                          onClick={() => { setPreviewUrl(u => u ? null : ref); setPreviewLoading(true) }}
+                        >
+                          {previewUrl ? 'Close' : 'Preview'}
+                        </Button>
+                      </>
+                    )}
+                  </Compact>
+                </Form.Item>
+                {previewUrl && (
+                  <div style={{ marginBottom: 16, border: '1px solid #d9d9d9', borderRadius: 6, overflow: 'hidden', height: 500, position: 'relative' }}>
+                    {previewLoading && (
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', zIndex: 1 }}>
+                        <Spin size="large" description="Loading session..." />
+                      </div>
+                    )}
+                    <iframe
+                      src={previewUrl}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 'none', display: 'block' }}
+                      onLoad={() => setPreviewLoading(false)}
+                    />
+                  </div>
+                )}
+              </>
+            )
+          }}
         </Form.Item>
         <Form.Item name="confirmed" valuePropName="checked">
           <Checkbox>Confirmed SVT event</Checkbox>
