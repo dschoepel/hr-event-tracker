@@ -23,18 +23,19 @@ $ARGUMENTS contains the version tag to deploy (e.g. `v1.2.0`). If empty, read th
    Ask the user: "Has the build for <tag> completed successfully? (yes/no)"
    If no, stop here. The image must be built before deploying.
 
-5. **Load VPS config**: Read `.env.deploy` for VPS_HOST, SSH_USER, APP_NAME, DOMAIN.
+5. **Load VPS config**: Read `.env.deploy` for VPS_HOST, SSH_USER, SSH_PORT, APP_NAME, DOMAIN.
    If `.env.deploy` doesn't exist, stop: "Create .env.deploy from .env.deploy.example with your VPS details."
+   Default SSH_PORT to 22 if not set.
 
 6. **Run deploy script on VPS**:
    ```bash
-   ssh <SSH_USER>@<VPS_HOST> 'bash -s' < deploy/scripts/deploy.sh <tag>
+   ssh -p <SSH_PORT> <SSH_USER>@<VPS_HOST> 'bash -s' < deploy/scripts/deploy.sh <tag>
    ```
    Stream the output. If exit code is non-zero, report the error and stop.
 
 7. **Tail logs** (brief check):
    ```bash
-   ssh <SSH_USER>@<VPS_HOST> 'docker logs <APP_NAME> --tail 20'
+   ssh -p <SSH_PORT> <SSH_USER>@<VPS_HOST> 'docker logs <APP_NAME> --tail 20'
    ```
 
 8. **Smoke test**:
@@ -49,6 +50,5 @@ $ARGUMENTS contains the version tag to deploy (e.g. `v1.2.0`). If empty, read th
    ```
 
 ## If deploy fails
-- Maintenance mode will remain ON (deploy.sh is safe-fail)
-- Check: `ssh <SSH_USER>@<VPS_HOST> 'docker logs <APP_NAME> --tail 50'`
-- To restore previous version: `ssh <SSH_USER>@<VPS_HOST> 'cd <DEPLOY_PATH> && docker compose up -d --no-deps app && rm -f <MAINTENANCE_FLAG>'`
+- Check logs: `ssh -p <SSH_PORT> <SSH_USER>@<VPS_HOST> 'docker logs <APP_NAME> --tail 50'`
+- To restore previous version: `ssh -p <SSH_PORT> <SSH_USER>@<VPS_HOST> 'cd <DEPLOY_PATH> && docker compose up -d --no-deps app'`

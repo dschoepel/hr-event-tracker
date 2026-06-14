@@ -7,19 +7,20 @@ services:
     image: ghcr.io/dschoepel/hr-event-tracker:latest
     container_name: hr-event-tracker
     restart: unless-stopped
-    expose:
-      - "${APP_PORT:-3000}"
+    user: "${PUID:-1001}:${PGID:-1001}"
+    ports:
+      - "${APP_PORT:-3000}:3000"
     env_file:
       - /data/hr-event-tracker/.env.production
-    networks:
-      - proxy_net
+    volumes:
+      - /data/hr-event-tracker/data:/app/data   # SQLite persistence
     read_only: true
     tmpfs:
       - /tmp
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:$${APP_PORT:-3000}/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -34,12 +35,6 @@ services:
   #     - /data/hr-event-tracker/.env.production
   #   volumes:
   #     - pg_data:/var/lib/postgresql/data
-  #   networks:
-  #     - proxy_net
-
-networks:
-  proxy_net:
-    external: true  # SWAG reverse proxy network
 
 # volumes:
 #   pg_data:
