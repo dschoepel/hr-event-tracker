@@ -1,3 +1,14 @@
+## [1.0.2] - 2026-06-14
+
+### Bug Fixes
+- **Event durations are now accurate.** Previously, the algorithm would scan the entire remaining ride to find the lowest HR after a spike, which caused it to pick up normal HR dips later in the ride and report inflated durations (e.g. 13 minutes instead of 2). The scan now stops as soon as HR has recovered to near the level it was at before the spike.
+- **Event history stays expanded when you navigate back.** Months in the history list no longer collapse when you return from viewing an event detail page.
+
+### Improvements
+- When you return from an event detail page, the event you just viewed is highlighted in the history list and scrolled into view automatically.
+
+---
+
 ## [1.0.1] - 2026-06-14
 ### What's New
 - **Frontier X2 integration**: Paste a shared workout URL into the Frontier X2 Session Ref field and use the new **Open** button to launch it in a new tab, or **Preview** to view the session in a panel directly on the page.
