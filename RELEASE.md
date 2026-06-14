@@ -1,39 +1,24 @@
 ## [1.0.1] - 2026-06-14
-### Added
-- Frontier X2 Session Ref: Open (new tab) and Preview (iframe) buttons via Space.Compact
-- Preview iframe with loading spinner and Close toggle
-- Chart loading spinner with description while Recharts renders
-- Back to history link at top of event detail page
+### What's New
+- **Frontier X2 integration**: Paste a shared workout URL into the Frontier X2 Session Ref field and use the new **Open** button to launch it in a new tab, or **Preview** to view the session in a panel directly on the page.
+- **Chart loading indicator**: A spinner with "Loading chart…" now appears while the HR/power graph is rendering, so the page no longer freezes silently.
+- **Back to history** link added at the top of the event detail page — no more scrolling to the bottom to navigate back.
 
-### Changed
-- Confirmed column now shows for single-event rides in history table
-- History ride table shows column headers (Confirmed, Actions)
-- Chart x-axis formatted as M:SS / H:MM:SS instead of Xm Ys
-- Deployment adapted for local LAN server with nginx reverse proxy
-- deploy/docker-compose.yml: PUID/PGID support, SQLite data volume, no proxy_net
-- deploy/scripts/deploy.sh: removed SWAG maintenance flag dependency
-- SSH_PORT support in /deploy skill and .env.deploy.example
-- nginx config added for hr-event-tracker.schoepels.com
+### Improvements
+- The **Confirmed** status now appears for all events in the history list, not just rides with multiple events.
+- Column headers (Confirmed, Actions) are now visible for all ride rows in the history table.
+- Chart time axis now shows in **H:MM:SS** format (e.g. 1:02:13) instead of a mix of minutes and seconds.
+
+---
 
 ## [1.0.0] - 2026-06-14
-### Added
-- GPX file upload with HR spike detection (auto-detection algorithm)
-- Event history page grouped by month → ride → events, expandable at each level
-- Event detail page with HR + power chart (smoothed 30s rolling average for power)
-- Narrative event summary: "HR jumped X bpm from Y to Z bpm and dropped..."
-- Events by Month bar chart and Events by Ride summary cards
-- Ride name and date extracted from GPX metadata
-- Power data extracted from GPX extensions and displayed as filled area chart
-- FaHeartbeat icon in navbar and SVG favicon
+### Initial Release
+HR Event Tracker is a personal tool for recording and reviewing supraventricular tachycardia (SVT) events detected during cycling workouts.
 
-### Changed
-- Detection algorithm uses peak-vs-baseline threshold (not trigger-vs-baseline) to catch gradual-onset SVT
-- Settle scan searches full remaining stream for true HR recovery point
-- Sensor dropout values (HR < 20) filtered from stream and settle scan
-- data_truncated flag: if HR never recovers to near onset, recovery estimated as onset HR
-- Upload moved into Event History page; home route redirects to /events
-- Date/Time shows actual event time (ride_start_time + start_time_seconds)
-- "Baseline" relabelled "HR at Onset"; Method column removed from display
-- Duration formatted as Xm Ys throughout
-- antd message() uses App context (fixes console warning)
-- suppressHydrationWarning on body (fixes browser extension hydration mismatch)
+### Features
+- **GPX upload**: Import a ride file from Zwift or any GPS device. HR spike events are detected automatically.
+- **Event history**: Browse all detected events grouped by month and ride, with expandable rows and event summaries.
+- **Event detail**: View HR and power on a single chart with the event window highlighted. Includes a narrative summary ("HR jumped X bpm from Y to Z bpm…").
+- **Ride metadata**: Ride name and date are read directly from the GPX file.
+- **Power chart**: If your device records power, it's displayed as a filled area chart alongside HR.
+- **Notes and confirmation**: Add notes, link a Frontier X2 ECG session, and mark events as confirmed SVT.
