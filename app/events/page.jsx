@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload } from 'antd'
 import { DeleteOutlined, UploadOutlined } from '@ant-design/icons'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
@@ -90,6 +90,8 @@ export default function EventHistoryPage() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [expandedMonths, setExpandedMonths] = useState([])
+  const [highlightId, setHighlightId] = useState(null)
 
   const load = () => {
     setLoading(true)
@@ -102,9 +104,30 @@ export default function EventHistoryPage() {
 
   useEffect(load, [])
 
+  useEffect(() => {
+    const h = new URLSearchParams(window.location.search).get('highlight')
+    if (h) setHighlightId(Number(h))
+  }, [])
+
   const monthData   = useMemo(() => byMonth(events),       [events])
   const rideData    = useMemo(() => byRide(events),        [events])
   const monthGroups = useMemo(() => groupByMonth(events),  [events])
+
+  // Expand all months when data first loads
+  useEffect(() => {
+    if (!loading && monthGroups.length > 0 && expandedMonths.length === 0)
+      setExpandedMonths(monthGroups.map(m => m.key))
+  }, [loading, monthGroups])
+
+  // Scroll to highlighted row after table renders
+  useEffect(() => {
+    if (!highlightId || loading) return
+    const t = setTimeout(() => {
+      const el = document.querySelector('[data-highlight="true"]')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 300)
+    return () => clearTimeout(t)
+  }, [highlightId, loading])
 
   const handleUpload = async ({ file }) => {
     setUploading(true)
@@ -288,7 +311,8 @@ export default function EventHistoryPage() {
           loading={loading}
           pagination={false}
           expandable={{
-            defaultExpandAllRows: true,
+            expandedRowKeys: expandedMonths,
+            onExpandedRowsChange: setExpandedMonths,
             expandedRowRender: month => (
               <Table
                 rowKey="key"
@@ -296,6 +320,10 @@ export default function EventHistoryPage() {
                 dataSource={month.rides}
                 pagination={false}
                 size="small"
+                onRow={r => r.count === 1 && r.events[0].id === highlightId ? {
+                  'data-highlight': 'true',
+                  style: { background: '#fffde7' },
+                } : {}}
                 expandable={{
                   defaultExpandAllRows: true,
                   rowExpandable: ride => ride.count > 1,
@@ -307,6 +335,10 @@ export default function EventHistoryPage() {
                       pagination={false}
                       size="small"
                       style={{ margin: '0 0 8px 24px' }}
+                      onRow={r => r.id === highlightId ? {
+                        'data-highlight': 'true',
+                        style: { background: '#fffde7' },
+                      } : {}}
                     />
                   ),
                 }}

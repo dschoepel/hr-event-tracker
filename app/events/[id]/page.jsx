@@ -78,12 +78,12 @@ export default function EventDetailPage({ params }) {
   }
 
   if (loading) return <Spin style={{ display: 'block', margin: '48px auto' }} />
-  if (!event) return <Card>Event not found — <Link href="/events">Back to history</Link></Card>
+  if (!event) return <Card>Event not found — <Link href={`/events?highlight=${id}`}>Back to history</Link></Card>
 
   return (
     <Card>
       <div style={{ marginBottom: 8 }}>
-        <Link href="/events">← Back to history</Link>
+        <Link href={`/events?highlight=${id}`}>← Back to history</Link>
       </div>
       <Title level={3}>{event.ride_name ?? `Event #${id}`}</Title>
       {(event.ride_start_time || event.created_at) && <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>{event.ride_start_time ? new Date(new Date(event.ride_start_time).getTime() + event.start_time_seconds * 1000).toLocaleString() : new Date(event.created_at + 'Z').toLocaleString()}</Typography.Text>}
@@ -189,7 +189,7 @@ export default function EventDetailPage({ params }) {
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">Save</Button>
-          <Link href="/events" style={{ marginLeft: 12 }}>← Back to history</Link>
+          <Link href={`/events?highlight=${id}`} style={{ marginLeft: 12 }}>← Back to history</Link>
         </Form.Item>
       </Form>
     </Card>
