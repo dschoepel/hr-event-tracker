@@ -18,7 +18,7 @@ You are executing the `/release` skill for hr-event-tracker. Orchestrate a full 
    - Insert a new empty `## [Unreleased]` section above it
    - If `[Unreleased]` has no content, add `### Changed\n- Version bump` before the dated section
 
-5. **Write RELEASE.md**: Extract the just-dated section from CHANGELOG.md and write it as the sole content of RELEASE.md, replacing everything. Include the version header and date.
+5. **Update RELEASE.md**: Extract the just-dated section from CHANGELOG.md and **prepend** it to the top of the existing RELEASE.md content. Do not replace the file — read the current contents first, then write the new release section followed by a blank line and the previous contents. This allows RELEASE.md to accumulate all releases for use as GitHub release notes.
 
 6. **Commit**: Stage and commit all three files:
    ```
