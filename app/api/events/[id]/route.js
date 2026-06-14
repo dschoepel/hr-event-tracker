@@ -4,7 +4,11 @@ import { getDb } from '@/lib/db'
 export async function GET(request, { params }) {
   const { id } = await params
   const db = getDb()
-  const event = db.prepare('SELECT * FROM hr_events WHERE id = ?').get(id)
+  const event = db.prepare(`
+    SELECT e.*, f.filename, f.ride_name, f.ride_date AS file_ride_date, f.ride_start_time
+    FROM hr_events e LEFT JOIN gpx_files f ON f.id = e.gpx_file_id
+    WHERE e.id = ?
+  `).get(id)
   if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const streamRow = db.prepare('SELECT stream_json FROM hr_streams WHERE gpx_file_id = ?').get(event.gpx_file_id)

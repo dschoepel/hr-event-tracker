@@ -7,7 +7,7 @@ export async function GET(request) {
   const start_date = searchParams.get('start_date')
   const end_date = searchParams.get('end_date')
 
-  let sql = `SELECT e.*, f.filename, f.ride_date AS file_ride_date
+  let sql = `SELECT e.*, f.filename, f.ride_name, f.ride_date AS file_ride_date, f.ride_start_time
              FROM hr_events e LEFT JOIN gpx_files f ON f.id = e.gpx_file_id
              WHERE 1=1`
   const params = []

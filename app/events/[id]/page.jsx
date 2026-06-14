@@ -1,7 +1,7 @@
 'use client'
 import { use, useEffect, useState } from 'react'
 import { Card, Form, Input, Button, Checkbox, App, Descriptions, Spin, Typography } from 'antd'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ResponsiveContainer } from 'recharts'
+import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 
 const { Title } = Typography
@@ -62,19 +62,25 @@ export default function EventDetailPage({ params }) {
 
   return (
     <Card>
-      <Title level={3}>Event #{id}</Title>
+      <Title level={3}>{event.ride_name ?? `Event #${id}`}</Title>
+      {(event.ride_start_time || event.created_at) && <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>{event.ride_start_time ? new Date(new Date(event.ride_start_time).getTime() + event.start_time_seconds * 1000).toLocaleString() : new Date(event.created_at + 'Z').toLocaleString()}</Typography.Text>}
+      <Typography.Paragraph style={{ fontSize: 15, marginBottom: event.data_truncated ? 4 : 16 }}>
+        HR jumped <strong>{event.jump_magnitude} bpm</strong> from <strong>{event.baseline_before}</strong> to <strong>{event.peak_hr} bpm</strong> and
+        dropped <strong>{event.drop_magnitude} bpm</strong> back to <strong>{event.hr_after_drop} bpm</strong> after <strong>{fmtSec(Math.round(event.duration_seconds))}</strong>.
+      </Typography.Paragraph>
+      {event.data_truncated ? <Typography.Text type="warning" style={{ display: 'block', marginBottom: 16, fontSize: 13 }}>⚠ Recording ended before full HR recovery — return to onset HR is estimated.</Typography.Text> : null}
       <Descriptions bordered style={{ marginBottom: 24 }} column={{ xs: 1, sm: 2, md: 3 }}>
-        <Descriptions.Item label="Peak HR">{event.peak_hr} bpm</Descriptions.Item>
+        <Descriptions.Item label="HR at Onset">{event.baseline_before} bpm</Descriptions.Item>
         <Descriptions.Item label="Jump">{event.jump_magnitude} bpm</Descriptions.Item>
+        <Descriptions.Item label="Peak HR">{event.peak_hr} bpm</Descriptions.Item>
         <Descriptions.Item label="Drop">{event.drop_magnitude} bpm</Descriptions.Item>
+        <Descriptions.Item label="HR After Drop">{event.hr_after_drop} bpm</Descriptions.Item>
         <Descriptions.Item label="Duration">{(() => { const s = Math.round(event.duration_seconds); return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s` })()}</Descriptions.Item>
-        <Descriptions.Item label="Baseline">{event.baseline_before} bpm</Descriptions.Item>
-        <Descriptions.Item label="Method">{event.detection_method}</Descriptions.Item>
       </Descriptions>
 
       {hrStream.length > 0 && (
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={smooth30s(hrStream)}>
+          <ComposedChart data={smooth30s(hrStream)}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="t" tickFormatter={fmtSec} label={{ value: 'Time', position: 'insideBottom', offset: -5 }} />
             <YAxis yAxisId="hr" label={{ value: 'HR (bpm)', angle: -90, position: 'insideLeft' }} domain={['auto', 'auto']} />
@@ -97,9 +103,9 @@ export default function EventDetailPage({ params }) {
             />
             <Line yAxisId="hr" type="monotone" dataKey="hr" name="HR" dot={false} stroke="#d32f2f" strokeWidth={2} />
             {hrStream.some(p => p.watts != null) && (
-              <Line yAxisId="power" type="monotone" dataKey="watts" name="Power" dot={false} stroke="#1677ff" strokeWidth={1.5} />
+              <Area yAxisId="power" type="monotone" dataKey="watts" name="Power" dot={false} stroke="#90caf9" strokeWidth={1.5} fill="#90caf9" fillOpacity={0.25} />
             )}
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       )}
 

@@ -1,14 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { Layout, Menu, Drawer, Button, Space } from 'antd'
-import { MenuOutlined, HeartFilled } from '@ant-design/icons'
+import { MenuOutlined } from '@ant-design/icons'
+import { FaHeartbeat } from 'react-icons/fa'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const { Header } = Layout
 
 const NAV_ITEMS = [
-  { key: '/', label: <Link href="/">Upload</Link> },
   { key: '/events', label: <Link href="/events">Event History</Link> },
 ]
 
@@ -26,7 +26,7 @@ export default function ResponsiveNav() {
       }}
     >
       <Space align="center" style={{ marginRight: 32 }}>
-        <HeartFilled style={{ fontSize: 20, color: '#ff8a80', filter: 'drop-shadow(0 0 4px #ff5252aa)' }} />
+        <FaHeartbeat style={{ fontSize: 22, color: '#ff8a80', filter: 'drop-shadow(0 0 4px #ff5252aa)' }} />
         <span style={{ color: '#fff', fontWeight: 700, fontSize: 17, userSelect: 'none' }}>
           HR Event Tracker
         </span>

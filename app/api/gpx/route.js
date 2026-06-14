@@ -14,9 +14,9 @@ export async function POST(request) {
     const db = getDb()
 
     const fileRow = db.prepare(`
-      INSERT INTO gpx_files (filename, ride_date, duration_seconds)
-      VALUES (?, ?, ?)
-    `).run(file.name, metadata.ride_date, metadata.duration_seconds)
+      INSERT INTO gpx_files (filename, ride_name, ride_date, ride_start_time, duration_seconds)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(file.name, metadata.ride_name, metadata.ride_date, metadata.ride_start_time, metadata.duration_seconds)
 
     const gpxFileId = Number(fileRow.lastInsertRowid)
 
@@ -28,11 +28,11 @@ export async function POST(request) {
         INSERT INTO hr_events
           (gpx_file_id, start_time_seconds, peak_hr, peak_time_seconds, baseline_before,
            hr_after_drop, drop_time_seconds, duration_seconds, jump_magnitude, drop_magnitude,
-           detection_method)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+           detection_method, data_truncated)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
       `).run(gpxFileId, c.start_time_seconds, c.peak_hr, c.peak_time_seconds, c.baseline_before,
              c.hr_after_drop, c.drop_time_seconds, c.duration_seconds, c.jump_magnitude,
-             c.drop_magnitude, c.detection_method)
+             c.drop_magnitude, c.detection_method, c.data_truncated)
     }
 
     return NextResponse.json({ gpx_file_id: gpxFileId, candidates })
