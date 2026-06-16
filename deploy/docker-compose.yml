@@ -14,6 +14,7 @@ services:
       - /data/hr-event-tracker/.env.production
     volumes:
       - /data/hr-event-tracker/data:/app/data   # SQLite persistence
+      - /data/hr-event-tracker/gpx:/app/gpx     # GPX file storage
     read_only: true
     tmpfs:
       - /tmp

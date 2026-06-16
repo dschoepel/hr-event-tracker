@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload } from 'antd'
-import { DeleteOutlined, UploadOutlined } from '@ant-design/icons'
+import { DeleteOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import Link from 'next/link'
 
@@ -41,7 +41,7 @@ function byRide(events) {
   const map = {}
   for (const e of events) {
     const key = e.gpx_file_id ?? e.filename ?? 'Unknown'
-    if (!map[key]) map[key] = { label: rideLabel(e), count: 0 }
+    if (!map[key]) map[key] = { key, label: rideLabel(e), count: 0 }
     map[key].count++
   }
   return Object.values(map).sort((a, b) => b.count - a.count)
@@ -86,10 +86,11 @@ function groupByMonth(events) {
 }
 
 export default function EventHistoryPage() {
-  const { message } = App.useApp()
+  const { message, modal } = App.useApp()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [rerunningId, setRerunningId] = useState(null)
   const [expandedMonths, setExpandedMonths] = useState([])
   const [highlightId, setHighlightId] = useState(null)
 
@@ -129,15 +130,41 @@ export default function EventHistoryPage() {
     return () => clearTimeout(t)
   }, [highlightId, loading])
 
-  const handleUpload = async ({ file }) => {
-    setUploading(true)
+  const doUpload = async (file, force = false) => {
     const formData = new FormData()
     formData.append('file', file)
+    const url = force ? '/api/gpx?force=true' : '/api/gpx'
+    const res = await fetch(url, { method: 'POST', body: formData })
+    const data = await res.json()
+
+    if (res.status === 409 && data.duplicate) {
+      const ex = data.existing
+      const uploadedOn = new Date(ex.uploaded_at + 'Z').toLocaleDateString()
+      modal.confirm({
+        title: 'Duplicate ride detected',
+        content: (
+          <div>
+            <p>This file appears to be a duplicate of a previously uploaded ride:</p>
+            <p><strong>{ex.ride_name || ex.filename}</strong><br />
+            Uploaded {uploadedOn} · {ex.event_count} event{ex.event_count !== 1 ? 's' : ''} detected</p>
+            <p>Upload anyway? The file will be marked as a duplicate.</p>
+          </div>
+        ),
+        okText: 'Upload Anyway',
+        cancelText: 'Cancel',
+        onOk: () => doUpload(file, true).then(load),
+      })
+      return
+    }
+
+    if (!res.ok) throw new Error(data.error)
+    message.success(`Detected ${data.candidates?.length ?? 0} event(s) — history updated`)
+  }
+
+  const handleUpload = async ({ file }) => {
+    setUploading(true)
     try {
-      const res = await fetch('/api/gpx', { method: 'POST', body: formData })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      message.success(`Detected ${data.candidates?.length ?? 0} event(s) — history updated`)
+      await doUpload(file)
       load()
     } catch (err) {
       message.error(`Upload failed: ${err.message}`)
@@ -146,14 +173,60 @@ export default function EventHistoryPage() {
     }
   }
 
+  const deleteGpxFile = async (gpxFileId, reason) => {
+    modal.confirm({
+      title: 'Remove GPX file?',
+      content: reason,
+      okText: 'Remove',
+      okButtonProps: { danger: true },
+      cancelText: 'Keep',
+      onOk: async () => {
+        const res = await fetch(`/api/gpx/${gpxFileId}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('Failed to remove GPX file')
+        load()
+      },
+    })
+  }
+
   const handleDelete = async (id) => {
+    const evt = events.find(e => e.id === id)
+    const gpxFileId = evt?.gpx_file_id
+    const rideName = evt?.ride_name || 'this ride'
+    const remaining = events.filter(e => e.gpx_file_id === gpxFileId && e.id !== id).length
+
     try {
       const res = await fetch(`/api/events/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
       message.success('Event deleted')
       setEvents(prev => prev.filter(e => e.id !== id))
+
+      if (remaining === 0 && gpxFileId) {
+        deleteGpxFile(gpxFileId, `"${rideName}" has no remaining events. Remove the saved GPX file for this ride?`)
+      }
     } catch {
       message.error('Delete failed')
+    }
+  }
+
+  const handleRerun = async (gpxFileId) => {
+    setRerunningId(gpxFileId)
+    const rideName = events.find(e => e.gpx_file_id === gpxFileId)?.ride_name || 'this ride'
+    try {
+      const res = await fetch(`/api/gpx/${gpxFileId}/rerun`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
+      if (data.eventsFound === 0) {
+        load()
+        deleteGpxFile(gpxFileId, `No SVT events were detected for "${rideName}" with the current thresholds. Remove the saved GPX file?`)
+      } else {
+        message.success(`Re-detection complete — ${data.eventsFound} event(s) found`)
+        load()
+      }
+    } catch (err) {
+      message.error(`Rerun failed: ${err.message}`)
+    } finally {
+      setRerunningId(null)
     }
   }
 
@@ -229,21 +302,34 @@ export default function EventHistoryPage() {
     {
       title: 'Actions',
       key: 'actions',
-      width: 100,
-      render: (_, r) => r.count === 1 ? (
-        <Space>
-          <Link href={`/events/${r.events[0].id}`}>View</Link>
-          <Popconfirm
-            title="Delete this event?"
-            description="This cannot be undone."
-            onConfirm={() => handleDelete(r.events[0].id)}
-            okText="Delete"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} size="small" />
-          </Popconfirm>
-        </Space>
-      ) : null,
+      width: 140,
+      render: (_, r) => {
+        const gpxFileId = r.events[0]?.gpx_file_id
+        return (
+          <Space>
+            {r.count === 1 && <Link href={`/events/${r.events[0].id}`}>View</Link>}
+            {r.count === 1 && (
+              <Popconfirm
+                title="Delete this event?"
+                description="This cannot be undone."
+                onConfirm={() => handleDelete(r.events[0].id)}
+                okText="Delete"
+                okButtonProps={{ danger: true }}
+              >
+                <Button type="text" danger icon={<DeleteOutlined />} size="small" />
+              </Popconfirm>
+            )}
+            <Button
+              type="text"
+              icon={<ReloadOutlined />}
+              size="small"
+              loading={rerunningId === gpxFileId}
+              onClick={() => handleRerun(gpxFileId)}
+              title="Re-run detection"
+            />
+          </Space>
+        )
+      },
     },
   ]
 
@@ -284,8 +370,8 @@ export default function EventHistoryPage() {
           <Col xs={24} lg={12}>
             <Card title="Events by Ride" size="small" styles={{ body: { padding: '8px 16px' } }}>
               <Space orientation="vertical" size={4} style={{ width: '100%' }}>
-                {rideData.map(({ label, count }) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {rideData.map(({ key, label, count }) => (
+                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text ellipsis style={{ flex: 1, fontSize: 12 }} title={label}>{label}</Text>
                     <Badge count={count} color="#d32f2f" style={{ marginLeft: 8, flexShrink: 0 }} />
                   </div>

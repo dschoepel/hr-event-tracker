@@ -9,7 +9,8 @@ import Link from 'next/link'
 const { Header } = Layout
 
 const NAV_ITEMS = [
-  { key: '/events', label: <Link href="/events">Event History</Link> },
+  { key: '/events',   label: <Link href="/events">Event History</Link> },
+  { key: '/settings', label: <Link href="/settings">Settings</Link> },
 ]
 
 export default function ResponsiveNav() {
