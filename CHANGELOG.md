@@ -7,14 +7,25 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-16
+
 ### Added
-- Doctor-shareable report page (`/report`) with full episode log, monthly frequency chart, and summary stats matching the HR_Episode_Log layout
-- Report Settings tab in Settings page for configuring activity type, HR device name, and app URL used in the report
-- "Report" nav item in the main navigation
-- "Download PDF" button generates a clean PDF server-side via Puppeteer (no browser headers/footer chrome); clean page numbers and date in footer
-- "Print" button as a fallback using browser print with print-optimised CSS
-- Section headers, orange rows for episodes ≥2 min, bold peak HR ≥190 bpm, multi-event ordinal labels, and ECG Recording links in the episode log table
-- Episode log always starts on a fresh printed page; column headers repeat on every page
+- Doctor-shareable PDF report (`/report`) — episode log, monthly frequency chart, and summary stats; configurable via new Report tab in Settings (activity type, HR device name, app URL)
+- Server-side PDF download via Puppeteer: no browser headers/footer chrome, clean page-number + date footer; date range filter generates scoped reports and scoped PDF filenames
+- GPX files are now saved to disk on upload and can be re-processed with updated detection thresholds
+- Rerun detection action per ride — re-runs spike detection from the saved HR stream using current threshold settings
+- Settings page with Detection Thresholds tab (jump threshold, min baseline HR, drop required) and GPX Files tab (file manager with rerun, delete, and orphan cleanup)
+- Duplicate GPX detection — uploading the same activity twice prompts to confirm or skip
+- When no events are detected in an upload, you can choose to save the ride to history or discard it
+- CSV and JSON export of all events (Download → Export button in Event History)
+- Frontier X2 Session Ref included in CSV/JSON exports
+- Summary card at the top of Event History with key stats (total events, confirmed SVT, avg peak HR, avg duration) and collapsible list of rides with multiple events
+- Collapse All / Expand All button in Event History
+- Newly uploaded rides are highlighted and scrolled into view in the history list
+- Month expand/collapse state persists when navigating to an event detail page and back
+
+### Fixed
+- Antd `Statistic` deprecation warning (`valueStyle` → `styles.content`)
 
 ## [1.0.3] - 2026-06-14
 ### Fixed

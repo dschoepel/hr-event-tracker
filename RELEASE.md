@@ -1,3 +1,33 @@
+## [1.1.0] - 2026-06-16
+
+### What's New
+
+- **Doctor-shareable PDF report.** A new Report page (`/report`) generates a formatted episode log you can share with your cardiologist. It includes a summary of stats, a monthly frequency chart, and a full episode table with orange highlights for long events, bold peak HR values ≥ 190 bpm, ECG recording links, and ordinal labels when a single ride contains multiple episodes. Hit **Download PDF** for a clean server-generated file with proper page numbers — no browser URL headers or print dialog required.
+
+- **Date range filter on the report.** Pick a start and end date to scope the report to a specific period. The summary stats, monthly chart, and episode table all update live, and the downloaded PDF filename includes the selected dates.
+
+- **GPX files are now saved to disk.** Uploaded GPX files are kept so they can be reprocessed later. A new **GPX Files** tab in Settings shows all uploaded files grouped by ride, lets you rerun spike detection with the current thresholds, and flags orphaned records (rides with no events and no file on disk) for easy cleanup.
+
+- **Rerun detection.** After changing detection thresholds in Settings, use the Rerun action on any ride to re-analyse its saved HR stream without re-uploading the file.
+
+- **Settings page.** Configure spike detection thresholds (jump size, minimum baseline HR, required drop) and report display fields (activity type, HR device name, app URL) in one place.
+
+- **Duplicate upload detection.** Uploading the same activity a second time is now detected by ride start time. You'll be prompted to confirm before it's saved again.
+
+- **No-events prompt.** When an uploaded ride has no detected events, you can choose to save it to history anyway (useful for reference) or discard it.
+
+- **Data export.** Download your full event history as CSV or JSON from the Export button in Event History. Includes the Frontier X2 session reference URL.
+
+- **Summary card.** The top of the Event History page now shows key stats — total events, confirmed SVT count, average peak HR, and average duration. Rides with multiple events are listed in a collapsible section with a badge count.
+
+- **Collapse All / Expand All.** Quickly collapse or expand all months in the Event History with one click.
+
+- **Upload highlight.** After uploading a GPX file, the new ride is highlighted in the history list and scrolled into view automatically.
+
+- **Expanded month state is remembered.** Navigating to an event detail page and coming back no longer collapses all the months you had open.
+
+---
+
 ## [1.0.3] - 2026-06-14
 
 ### Bug Fixes
