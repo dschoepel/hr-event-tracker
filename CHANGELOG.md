@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-06-17
+
+### Changed
+- Replaced "SVT" terminology throughout the UI and documentation with neutral language ("episode") to avoid implying a diagnosis that has not been confirmed
+
 ## [1.1.0] - 2026-06-16
 
 ### Added

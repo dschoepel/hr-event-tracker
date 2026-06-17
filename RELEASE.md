@@ -1,3 +1,10 @@
+## [1.1.1] - 2026-06-17
+
+### Improvements
+- The app no longer uses the term "SVT" anywhere in the interface. All references have been replaced with neutral language ("episode") that describes what you experienced without implying a specific diagnosis. The report page already used this language — the rest of the UI now matches.
+
+---
+
 ## [1.1.0] - 2026-06-16
 
 ### What's New
