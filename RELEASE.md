@@ -1,3 +1,11 @@
+## [1.1.2] - 2026-06-17
+
+### Improvements
+- **Consistent breadcrumb navigation.** Every secondary page now shows an `Event History / [Page]` breadcrumb at the top. Settings finally has a way back to the dashboard without using the top nav. Episode Detail and Report no longer have their own one-off back links — one consistent pattern everywhere.
+- **Episodes by Month sorted newest first.** The monthly frequency table on the report now lists the most recent month at the top, so you don't have to scroll to see the latest data.
+
+---
+
 ## [1.1.1] - 2026-06-17
 
 ### Improvements

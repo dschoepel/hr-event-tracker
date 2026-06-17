@@ -7,6 +7,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-06-17
+
+### Changed
+- Replaced inconsistent back links with a breadcrumb bar on all secondary pages (Episode Detail, Report, Settings)
+- Episodes by Month on the report now shows newest month first
+
 ## [1.1.1] - 2026-06-17
 
 ### Changed
