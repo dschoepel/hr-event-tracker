@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload } from 'antd'
-import { DeleteOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload, Dropdown } from 'antd'
+import { DeleteOutlined, UploadOutlined, ReloadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import Link from 'next/link'
 
@@ -385,9 +385,19 @@ export default function EventHistoryPage() {
       <Card
         title={<Title level={3} style={{ margin: 0 }}>Event History</Title>}
         extra={
-          <Upload customRequest={handleUpload} accept=".gpx" showUploadList={false}>
-            <Button icon={<UploadOutlined />} loading={uploading} type="primary">Upload GPX</Button>
-          </Upload>
+          <Space>
+            <Dropdown menu={{
+              items: [
+                { key: 'csv',  label: <a href="/api/events/export?format=csv"  download>Download CSV</a> },
+                { key: 'json', label: <a href="/api/events/export?format=json" download>Download JSON</a> },
+              ],
+            }}>
+              <Button icon={<DownloadOutlined />}>Export</Button>
+            </Dropdown>
+            <Upload customRequest={handleUpload} accept=".gpx" showUploadList={false}>
+              <Button icon={<UploadOutlined />} loading={uploading} type="primary">Upload GPX</Button>
+            </Upload>
+          </Space>
         }
       >
         <Table
