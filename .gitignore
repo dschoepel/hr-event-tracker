@@ -21,6 +21,9 @@ build/
 *.db-shm
 *.db-wal
 
+# Local runtime data
+data/
+
 # Debug
 npm-debug.log*
 
