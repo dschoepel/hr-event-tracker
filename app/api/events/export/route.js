@@ -41,8 +41,9 @@ export async function GET(request) {
       drop_bpm:         r.drop_magnitude,
       hr_after_drop:    r.hr_after_drop,
       duration_seconds: r.duration_seconds,
-      confirmed:        r.confirmed === 1,
-      notes:            r.notes ?? null,
+      confirmed:           r.confirmed === 1,
+      notes:               r.notes ?? null,
+      frontier_session_ref: r.frontier_session_ref ?? null,
     }))
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: {
@@ -53,7 +54,8 @@ export async function GET(request) {
   }
 
   const headers = ['id', 'ride_name', 'ride_date', 'event_time', 'baseline_hr', 'peak_hr',
-                   'jump_bpm', 'drop_bpm', 'hr_after_drop', 'duration_seconds', 'confirmed', 'notes']
+                   'jump_bpm', 'drop_bpm', 'hr_after_drop', 'duration_seconds', 'confirmed',
+                   'notes', 'frontier_session_ref']
 
   const csvRows = rows.map(r => [
     r.id,
@@ -68,6 +70,7 @@ export async function GET(request) {
     r.duration_seconds,
     r.confirmed === 1 ? 'Yes' : 'No',
     r.notes,
+    r.frontier_session_ref,
   ].map(escapeCell).join(','))
 
   const csv = [headers.join(','), ...csvRows].join('\r\n')
