@@ -93,6 +93,8 @@ export default function EventHistoryPage() {
   const [rerunningId, setRerunningId] = useState(null)
   const [expandedMonths, setExpandedMonths] = useState([])
   const [highlightId, setHighlightId] = useState(null)
+  const [highlightGpxId, setHighlightGpxId] = useState(null)
+  const expandInitialized = useRef(false)
 
   const load = () => {
     setLoading(true)
@@ -114,21 +116,44 @@ export default function EventHistoryPage() {
   const rideData    = useMemo(() => byRide(events),        [events])
   const monthGroups = useMemo(() => groupByMonth(events),  [events])
 
-  // Expand all months when data first loads
+  // Restore saved expand state on first load; expand all if nothing saved
   useEffect(() => {
-    if (!loading && monthGroups.length > 0 && expandedMonths.length === 0)
-      setExpandedMonths(monthGroups.map(m => m.key))
+    if (!loading && monthGroups.length > 0 && !expandInitialized.current) {
+      expandInitialized.current = true
+      try {
+        const saved = sessionStorage.getItem('hr-expanded-months')
+        const parsed = saved !== null ? JSON.parse(saved) : null
+        setExpandedMonths(Array.isArray(parsed) && parsed.length > 0
+          ? parsed
+          : monthGroups.map(m => m.key))
+      } catch {
+        setExpandedMonths(monthGroups.map(m => m.key))
+      }
+    }
   }, [loading, monthGroups])
 
-  // Scroll to highlighted row after table renders
+  // Persist expanded state so it survives back-navigation
   useEffect(() => {
-    if (!highlightId || loading) return
+    if (expandInitialized.current)
+      sessionStorage.setItem('hr-expanded-months', JSON.stringify(expandedMonths))
+  }, [expandedMonths])
+
+  // Scroll to highlighted row; for gpx highlights also ensure the month is expanded
+  useEffect(() => {
+    if ((!highlightId && !highlightGpxId) || loading) return
+    if (highlightGpxId) {
+      const evt = events.find(e => e.gpx_file_id === highlightGpxId)
+      if (evt) {
+        const monthKey = eventMonthKey(evt)
+        setExpandedMonths(prev => prev.includes(monthKey) ? prev : [...prev, monthKey])
+      }
+    }
     const t = setTimeout(() => {
       const el = document.querySelector('[data-highlight="true"]')
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 300)
     return () => clearTimeout(t)
-  }, [highlightId, loading])
+  }, [highlightId, highlightGpxId, loading])
 
   const doUpload = async (file, force = false, saveEmpty = false) => {
     const formData = new FormData()
@@ -155,7 +180,7 @@ export default function EventHistoryPage() {
         ),
         okText: 'Upload Anyway',
         cancelText: 'Cancel',
-        onOk: () => doUpload(file, true, saveEmpty).then(load),
+        onOk: () => doUpload(file, true, saveEmpty),
       })
       return
     }
@@ -175,20 +200,21 @@ export default function EventHistoryPage() {
         ),
         okText: 'Save to History',
         cancelText: 'Discard',
-        onOk: () => doUpload(file, force, true).then(load),
+        onOk: () => doUpload(file, force, true),
       })
       return
     }
 
     if (!res.ok) throw new Error(data.error)
     message.success(`Detected ${data.candidates?.length ?? 0} event(s) — history updated`)
+    if (data.gpx_file_id) setHighlightGpxId(data.gpx_file_id)
+    load()
   }
 
   const handleUpload = async ({ file }) => {
     setUploading(true)
     try {
       await doUpload(file)
-      load()
     } catch (err) {
       message.error(`Upload failed: ${err.message}`)
     } finally {
@@ -409,6 +435,17 @@ export default function EventHistoryPage() {
         title={<Title level={3} style={{ margin: 0 }}>Event History</Title>}
         extra={
           <Space>
+            <Button
+              size="small"
+              disabled={monthGroups.length === 0}
+              onClick={() => setExpandedMonths(
+                expandedMonths.length === monthGroups.length
+                  ? []
+                  : monthGroups.map(m => m.key)
+              )}
+            >
+              {expandedMonths.length === monthGroups.length ? 'Collapse All' : 'Expand All'}
+            </Button>
             <Dropdown menu={{
               items: [
                 { key: 'csv',  label: <a href="/api/events/export?format=csv"  download>Download CSV</a> },
@@ -439,10 +476,11 @@ export default function EventHistoryPage() {
                 dataSource={month.rides}
                 pagination={false}
                 size="small"
-                onRow={r => r.count === 1 && r.events[0].id === highlightId ? {
-                  'data-highlight': 'true',
-                  style: { background: '#fffde7' },
-                } : {}}
+                onRow={r => {
+                  const byEvent = r.count === 1 && r.events[0].id === highlightId
+                  const byGpx   = r.events[0]?.gpx_file_id === highlightGpxId
+                  return (byEvent || byGpx) ? { 'data-highlight': 'true', style: { background: '#fffde7' } } : {}
+                }}
                 expandable={{
                   defaultExpandAllRows: true,
                   rowExpandable: ride => ride.count > 1,
