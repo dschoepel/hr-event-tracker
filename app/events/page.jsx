@@ -194,7 +194,7 @@ export default function EventHistoryPage() {
         title: 'No events detected',
         content: (
           <div>
-            <p>No SVT events were found in <strong>{rideName}</strong>{rideDate ? ` (${rideDate})` : ''}.</p>
+            <p>No episodes were detected in <strong>{rideName}</strong>{rideDate ? ` (${rideDate})` : ''}.</p>
             <p>Save this ride to history anyway, or discard it?</p>
           </div>
         ),
@@ -267,7 +267,7 @@ export default function EventHistoryPage() {
 
       if (data.eventsFound === 0) {
         load()
-        deleteGpxFile(gpxFileId, `No SVT events were detected for "${rideName}" with the current thresholds. Remove the saved GPX file?`)
+        deleteGpxFile(gpxFileId, `No episodes were detected for "${rideName}" with the current thresholds. Remove the saved GPX file?`)
       } else {
         message.success(`Re-detection complete — ${data.eventsFound} event(s) found`)
         load()
@@ -421,7 +421,7 @@ export default function EventHistoryPage() {
               <Row gutter={[8, 16]} style={{ marginBottom: 12 }}>
                 {[
                   { label: 'Total Events',  value: events.length },
-                  { label: 'Confirmed SVT', value: events.filter(e => e.confirmed).length },
+                  { label: 'Confirmed', value: events.filter(e => e.confirmed).length },
                   {
                     label: 'Avg Peak HR',
                     value: Math.round(events.reduce((s, e) => s + e.peak_hr, 0) / events.length),

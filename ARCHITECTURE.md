@@ -2,7 +2,7 @@
 
 ## Overview
 
-HR Event Tracker detects and logs supraventricular tachycardia (SVT) episodes from cycling workout GPX files. It parses HR streams, runs an automatic spike-detection algorithm, and provides a review UI for confirming events, adding notes, and linking ECG recordings. Confirmed events can be exported to CSV/JSON or rendered as a doctor-shareable PDF report.
+HR Event Tracker detects and logs unusual heart rate episodes from cycling workout GPX files. It parses HR streams, runs an automatic spike-detection algorithm, and provides a review UI for confirming events, adding notes, and linking ECG recordings. Confirmed events can be exported to CSV/JSON or rendered as a doctor-shareable PDF report.
 
 **Tier**: 1 (SQLite, no auth)
 **UI**: Ant Design v6
@@ -105,7 +105,7 @@ Raw HR (and optionally power) data for each ride, stored as JSON. Retained for r
 | `stream_json` | TEXT | `[{ t, hr, power? }, …]` array |
 
 ### `hr_events`
-One row per detected or manually created SVT episode.
+One row per detected or manually created HR episode.
 
 | Column | Type | Notes |
 |---|---|---|

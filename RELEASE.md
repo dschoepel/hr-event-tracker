@@ -18,7 +18,7 @@
 
 - **Data export.** Download your full event history as CSV or JSON from the Export button in Event History. Includes the Frontier X2 session reference URL.
 
-- **Summary card.** The top of the Event History page now shows key stats — total events, confirmed SVT count, average peak HR, and average duration. Rides with multiple events are listed in a collapsible section with a badge count.
+- **Summary card.** The top of the Event History page now shows key stats — total events, confirmed episode count, average peak HR, and average duration. Rides with multiple events are listed in a collapsible section with a badge count.
 
 - **Collapse All / Expand All.** Quickly collapse or expand all months in the Event History with one click.
 
@@ -61,7 +61,7 @@
 
 ## [1.0.0] - 2026-06-14
 ### Initial Release
-HR Event Tracker is a personal tool for recording and reviewing supraventricular tachycardia (SVT) events detected during cycling workouts.
+HR Event Tracker is a personal tool for recording and reviewing unusual heart rate episodes detected during cycling workouts.
 
 ### Features
 - **GPX upload**: Import a ride file from Zwift or any GPS device. HR spike events are detected automatically.
@@ -69,4 +69,4 @@ HR Event Tracker is a personal tool for recording and reviewing supraventricular
 - **Event detail**: View HR and power on a single chart with the event window highlighted. Includes a narrative summary ("HR jumped X bpm from Y to Z bpm…").
 - **Ride metadata**: Ride name and date are read directly from the GPX file.
 - **Power chart**: If your device records power, it's displayed as a filled area chart alongside HR.
-- **Notes and confirmation**: Add notes, link a Frontier X2 ECG session, and mark events as confirmed SVT.
+- **Notes and confirmation**: Add notes, link a Frontier X2 ECG session, and mark events as confirmed.

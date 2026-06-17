@@ -195,7 +195,7 @@ function GpxFilesTab() {
       render: v => new Date(v + 'Z').toLocaleDateString(),
     },
     {
-      title: 'SVT Events',
+      title: 'Episodes',
       dataIndex: 'event_count',
       width: 80,
       align: 'center',
@@ -239,7 +239,7 @@ function GpxFilesTab() {
       render: (_, r) => new Date(r.latestUpload + 'Z').toLocaleDateString(),
     },
     {
-      title: 'SVT Events',
+      title: 'Episodes',
       key: 'events',
       width: 80,
       align: 'center',

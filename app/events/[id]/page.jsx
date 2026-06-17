@@ -185,7 +185,7 @@ export default function EventDetailPage({ params }) {
           }}
         </Form.Item>
         <Form.Item name="confirmed" valuePropName="checked">
-          <Checkbox>Confirmed SVT event</Checkbox>
+          <Checkbox>Confirmed episode</Checkbox>
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">Save</Button>
