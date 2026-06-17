@@ -10,6 +10,7 @@ const { Header } = Layout
 
 const NAV_ITEMS = [
   { key: '/events',   label: <Link href="/events">Event History</Link> },
+  { key: '/report',   label: <Link href="/report">Report</Link> },
   { key: '/settings', label: <Link href="/settings">Settings</Link> },
 ]
 

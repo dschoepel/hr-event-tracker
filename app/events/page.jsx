@@ -433,7 +433,7 @@ export default function EventHistoryPage() {
                   },
                 ].map(({ label, value, suffix }) => (
                   <Col span={12} key={label}>
-                    <Statistic title={label} value={value} suffix={suffix} valueStyle={{ fontSize: 20 }} />
+                    <Statistic title={label} value={value} suffix={suffix} styles={{ content: { fontSize: 20 } }} />
                   </Col>
                 ))}
               </Row>

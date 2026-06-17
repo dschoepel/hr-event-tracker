@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useMemo } from 'react'
 import {
-  App, Card, Tabs, Form, InputNumber, Button, Space, Table, Badge, Tag,
+  App, Card, Tabs, Form, InputNumber, Input, Button, Space, Table, Badge, Tag,
   Typography, Tooltip,
 } from 'antd'
 import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons'
@@ -304,6 +304,74 @@ function GpxFilesTab() {
   )
 }
 
+function ReportTab() {
+  const { message } = App.useApp()
+  const [form] = Form.useForm()
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(data => form.setFieldsValue({
+        activityType: data.report_activityType,
+        hrDevice:     data.report_hrDevice,
+        appUrl:       data.report_appUrl,
+      }))
+      .catch(() => message.error('Failed to load settings'))
+  }, [])
+
+  const save = async (values) => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      if (!res.ok) throw new Error()
+      message.success('Report settings saved')
+    } catch {
+      message.error('Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card style={{ maxWidth: 480 }}>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+        These values appear in the doctor-shareable report. They are for display only and do not affect detection.
+      </Text>
+      <Form form={form} layout="vertical" onFinish={save}>
+        <Form.Item
+          label="Activity Type"
+          name="activityType"
+          extra="Describes the exercise type used throughout the report."
+        >
+          <Input placeholder="Indoor cycling (Zwift)" />
+        </Form.Item>
+        <Form.Item
+          label="HR Device / Monitor Name"
+          name="hrDevice"
+          extra="The cardiac monitor you wear — shown in the data collection and ECG column headers."
+        >
+          <Input placeholder="Frontier X2" />
+        </Form.Item>
+        <Form.Item
+          label="App URL"
+          name="appUrl"
+          extra="Public URL of this app, shown in the report footer."
+        >
+          <Input placeholder="hr-tracker.example.com" />
+        </Form.Item>
+        <Form.Item style={{ marginBottom: 0 }}>
+          <Button type="primary" htmlType="submit" loading={saving}>Save</Button>
+        </Form.Item>
+      </Form>
+    </Card>
+  )
+}
+
 export default function SettingsPage() {
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
@@ -313,6 +381,7 @@ export default function SettingsPage() {
         items={[
           { key: 'detection', label: 'Detection Thresholds', children: <DetectionTab /> },
           { key: 'gpx',       label: 'GPX Files',            children: <GpxFilesTab /> },
+          { key: 'report',    label: 'Report',               children: <ReportTab /> },
         ]}
       />
     </Space>

@@ -7,6 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Doctor-shareable report page (`/report`) with full episode log, monthly frequency chart, and summary stats matching the HR_Episode_Log layout
+- Report Settings tab in Settings page for configuring activity type, HR device name, and app URL used in the report
+- "Report" nav item in the main navigation
+- "Download PDF" button generates a clean PDF server-side via Puppeteer (no browser headers/footer chrome); clean page numbers and date in footer
+- "Print" button as a fallback using browser print with print-optimised CSS
+- Section headers, orange rows for episodes ≥2 min, bold peak HR ≥190 bpm, multi-event ordinal labels, and ECG Recording links in the episode log table
+- Episode log always starts on a fresh printed page; column headers repeat on every page
+
 ## [1.0.3] - 2026-06-14
 ### Fixed
 - Container healthcheck now passes — Next.js was binding only to the container's internal IP (because Docker sets HOSTNAME to the container ID). Explicitly setting HOSTNAME=0.0.0.0 in the image makes the server bind to all interfaces as expected.
