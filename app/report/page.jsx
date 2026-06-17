@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState, useMemo } from 'react'
 import { App, Button, DatePicker, Spin, Tooltip, Typography } from 'antd'
-import { PrinterOutlined, ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/navigation'
+import { PrinterOutlined, DownloadOutlined } from '@ant-design/icons'
 import styles from './report.module.css'
+import PageBreadcrumb from '@/components/PageBreadcrumb'
 
 const { RangePicker } = DatePicker
 const { Text } = Typography
@@ -84,7 +84,6 @@ function monthRange(events) {
 }
 
 export default function ReportPage() {
-  const router = useRouter()
   const [allEvents, setAllEvents] = useState([])
   const [settings, setSettings]   = useState(null)
   const [loading, setLoading]     = useState(true)
@@ -141,7 +140,7 @@ export default function ReportPage() {
       key,
       label: new Date(key + '-15').toLocaleString('en-US', { month: 'short', year: 'numeric' }),
       count: countMap[key] ?? 0,
-    }))
+    })).reverse()
   }, [events])
 
   const maxMonthCount = useMemo(
@@ -221,6 +220,11 @@ export default function ReportPage() {
         }
       `}} />
 
+      <PageBreadcrumb items={[
+        { label: 'Event History', href: '/events' },
+        { label: 'Report' },
+      ]} />
+
       {/* Controls bar */}
       <div className={styles.controls}>
         <DownloadPdfButton dateFilter={dateFilter} />
@@ -249,14 +253,6 @@ export default function ReportPage() {
             {events.length} of {allEvents.length} episode{allEvents.length !== 1 ? 's' : ''}
           </Text>
         )}
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.push('/events')}
-          style={{ marginLeft: 'auto' }}
-        >
-          Event History
-        </Button>
       </div>
 
       {/* Report document */}

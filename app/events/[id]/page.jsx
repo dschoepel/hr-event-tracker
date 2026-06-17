@@ -5,6 +5,7 @@ const { Compact } = Space
 import { LinkOutlined, EyeOutlined } from '@ant-design/icons'
 import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
+import PageBreadcrumb from '@/components/PageBreadcrumb'
 
 const { Title } = Typography
 
@@ -81,10 +82,12 @@ export default function EventDetailPage({ params }) {
   if (!event) return <Card>Event not found — <Link href={`/events?highlight=${id}`}>Back to history</Link></Card>
 
   return (
-    <Card>
-      <div style={{ marginBottom: 8 }}>
-        <Link href={`/events?highlight=${id}`}>← Back to history</Link>
-      </div>
+    <>
+      <PageBreadcrumb items={[
+        { label: 'Event History', href: `/events?highlight=${id}` },
+        { label: 'Episode Detail' },
+      ]} />
+      <Card>
       <Title level={3}>{event.ride_name ?? `Event #${id}`}</Title>
       {(event.ride_start_time || event.created_at) && <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>{event.ride_start_time ? new Date(new Date(event.ride_start_time).getTime() + event.start_time_seconds * 1000).toLocaleString() : new Date(event.created_at + 'Z').toLocaleString()}</Typography.Text>}
       <Typography.Paragraph style={{ fontSize: 15, marginBottom: event.data_truncated ? 4 : 16 }}>
@@ -189,9 +192,9 @@ export default function EventDetailPage({ params }) {
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">Save</Button>
-          <Link href={`/events?highlight=${id}`} style={{ marginLeft: 12 }}>← Back to history</Link>
         </Form.Item>
       </Form>
     </Card>
+    </>
   )
 }

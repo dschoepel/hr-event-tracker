@@ -5,6 +5,7 @@ import {
   Typography, Tooltip,
 } from 'antd'
 import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons'
+import PageBreadcrumb from '@/components/PageBreadcrumb'
 
 const { Title, Text } = Typography
 
@@ -375,6 +376,10 @@ function ReportTab() {
 export default function SettingsPage() {
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+      <PageBreadcrumb items={[
+        { label: 'Event History', href: '/events' },
+        { label: 'Settings' },
+      ]} />
       <Title level={3} style={{ margin: 0 }}>Settings</Title>
       <Tabs
         defaultActiveKey="detection"
