@@ -130,10 +130,13 @@ export default function EventHistoryPage() {
     return () => clearTimeout(t)
   }, [highlightId, loading])
 
-  const doUpload = async (file, force = false) => {
+  const doUpload = async (file, force = false, saveEmpty = false) => {
     const formData = new FormData()
     formData.append('file', file)
-    const url = force ? '/api/gpx?force=true' : '/api/gpx'
+    const params = new URLSearchParams()
+    if (force)     params.set('force', 'true')
+    if (saveEmpty) params.set('save',  'true')
+    const url = `/api/gpx${params.size ? '?' + params : ''}`
     const res = await fetch(url, { method: 'POST', body: formData })
     const data = await res.json()
 
@@ -152,7 +155,27 @@ export default function EventHistoryPage() {
         ),
         okText: 'Upload Anyway',
         cancelText: 'Cancel',
-        onOk: () => doUpload(file, true).then(load),
+        onOk: () => doUpload(file, true, saveEmpty).then(load),
+      })
+      return
+    }
+
+    if (data.noEvents) {
+      const rideName = data.metadata?.ride_name || file.name
+      const rideDate = data.metadata?.ride_date
+        ? new Date(data.metadata.ride_date + 'T12:00:00').toLocaleDateString()
+        : null
+      modal.confirm({
+        title: 'No events detected',
+        content: (
+          <div>
+            <p>No SVT events were found in <strong>{rideName}</strong>{rideDate ? ` (${rideDate})` : ''}.</p>
+            <p>Save this ride to history anyway, or discard it?</p>
+          </div>
+        ),
+        okText: 'Save to History',
+        cancelText: 'Discard',
+        onOk: () => doUpload(file, force, true).then(load),
       })
       return
     }

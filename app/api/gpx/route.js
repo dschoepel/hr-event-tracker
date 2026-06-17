@@ -7,7 +7,8 @@ import { parseGpx, detectSpikes } from '@/lib/gpxParser'
 export async function POST(request) {
   try {
     const { searchParams } = new URL(request.url)
-    const force = searchParams.get('force') === 'true'
+    const force    = searchParams.get('force') === 'true'
+    const saveEmpty = searchParams.get('save')  === 'true'
 
     const formData = await request.formData()
     const file = formData.get('file')
@@ -48,6 +49,14 @@ export async function POST(request) {
       minBaseline:  settings.minBaselineHr,
       dropRequired: settings.dropRequired,
     })
+
+    // If no events detected, ask the user before saving anything
+    if (candidates.length === 0 && !force && !saveEmpty) {
+      return NextResponse.json({
+        noEvents: true,
+        metadata: { ride_name: metadata.ride_name, ride_date: metadata.ride_date },
+      })
+    }
 
     const storedFilename = force ? file.name.replace(/\.gpx$/i, ' (duplicate).gpx') : file.name
 
