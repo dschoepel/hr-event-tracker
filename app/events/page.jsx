@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload, Dropdown } from 'antd'
+import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload, Dropdown, Statistic, Collapse } from 'antd'
 import { DeleteOutlined, UploadOutlined, ReloadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import Link from 'next/link'
@@ -417,15 +417,50 @@ export default function EventHistoryPage() {
           </Col>
 
           <Col xs={24} lg={12}>
-            <Card title="Events by Ride" size="small" styles={{ body: { padding: '8px 16px' } }}>
-              <Space orientation="vertical" size={4} style={{ width: '100%' }}>
-                {rideData.map(({ key, label, count }) => (
-                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text ellipsis style={{ flex: 1, fontSize: 12 }} title={label}>{label}</Text>
-                    <Badge count={count} color="#d32f2f" style={{ marginLeft: 8, flexShrink: 0 }} />
-                  </div>
+            <Card title="Summary" size="small">
+              <Row gutter={[8, 16]} style={{ marginBottom: 12 }}>
+                {[
+                  { label: 'Total Events',  value: events.length },
+                  { label: 'Confirmed SVT', value: events.filter(e => e.confirmed).length },
+                  {
+                    label: 'Avg Peak HR',
+                    value: Math.round(events.reduce((s, e) => s + e.peak_hr, 0) / events.length),
+                    suffix: 'bpm',
+                  },
+                  {
+                    label: 'Avg Duration',
+                    value: fmtDuration(events.reduce((s, e) => s + e.duration_seconds, 0) / events.length),
+                  },
+                ].map(({ label, value, suffix }) => (
+                  <Col span={12} key={label}>
+                    <Statistic title={label} value={value} suffix={suffix} valueStyle={{ fontSize: 20 }} />
+                  </Col>
                 ))}
-              </Space>
+              </Row>
+              {(() => {
+                const multiRides = rideData.filter(r => r.count >= 2)
+                if (!multiRides.length) return null
+                return (
+                  <Collapse
+                    size="small"
+                    ghost
+                    items={[{
+                      key: 'multi',
+                      label: <Space size={6}><Badge count={multiRides.length} color="#d32f2f" /><Text style={{ fontSize: 12 }}>ride{multiRides.length > 1 ? 's' : ''} with multiple events</Text></Space>,
+                      children: (
+                        <Space orientation="vertical" size={4} style={{ width: '100%' }}>
+                          {multiRides.map(({ key, label, count }) => (
+                            <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Text ellipsis style={{ flex: 1, fontSize: 12 }} title={label}>{label}</Text>
+                              <Badge count={count} color="#d32f2f" style={{ marginLeft: 8, flexShrink: 0 }} />
+                            </div>
+                          ))}
+                        </Space>
+                      ),
+                    }]}
+                  />
+                )
+              })()}
             </Card>
           </Col>
         </Row>
