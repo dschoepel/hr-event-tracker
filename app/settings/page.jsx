@@ -463,6 +463,12 @@ function ShareAccessTab() {
       render: v => new Date(v).toLocaleDateString(),
     },
     {
+      title: 'Last Used',
+      dataIndex: 'last_used_at',
+      width: 150,
+      render: v => v ? new Date(v + 'Z').toLocaleString() : <Text type="secondary">Never</Text>,
+    },
+    {
       title: 'Status',
       key: 'status',
       width: 100,

@@ -169,6 +169,7 @@ A link works any number of times until it expires or is revoked — not a one-ti
 | `created_at` | TEXT | UTC datetime |
 | `expires_at` | TEXT | ISO datetime; link is inert after this |
 | `revoked_at` | TEXT | Set when manually revoked; inert immediately (checked on every request, not cached in the cookie) |
+| `last_used_at` | TEXT | UTC datetime, updated each time `/share/{token}` is opened (not on every subsequent page view during that session — just each redemption) |
 
 ---
 

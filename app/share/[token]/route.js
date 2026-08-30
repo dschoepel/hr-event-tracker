@@ -12,6 +12,8 @@ export async function GET(request, { params }) {
   const invalid = !link || link.revoked_at || new Date(link.expires_at).getTime() < Date.now()
   if (invalid) return NextResponse.redirect(publicUrl('/login?error=invalid_link', request))
 
+  getDb().prepare("UPDATE share_links SET last_used_at = datetime('now') WHERE id = ?").run(link.id)
+
   const res = NextResponse.redirect(publicUrl('/report', request))
   setViewerCookie(res, link)
   return res
