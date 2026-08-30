@@ -8,11 +8,9 @@ const nextConfig = {
     NEXT_PUBLIC_APP_VERSION: version,
   },
   output: 'standalone',
-  experimental: {
-    // Ensure puppeteer-core (used by /api/report/pdf) survives standalone bundling
-    outputFileTracingIncludes: {
-      '/api/report/pdf': ['./node_modules/puppeteer-core/**/*'],
-    },
+  // Ensure puppeteer-core (used by /api/report/pdf) survives standalone bundling
+  outputFileTracingIncludes: {
+    '/api/report/pdf': ['./node_modules/puppeteer-core/**/*'],
   },
 }
 
