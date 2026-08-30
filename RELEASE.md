@@ -1,3 +1,11 @@
+## [1.2.3] - 2026-08-30
+
+### What's New
+
+- **Share links now show when they were last used.** In Settings → Share Access, each link's row shows the date and time it was last opened — "Never" if it hasn't been used yet — so you can see at a glance whether your doctor has actually looked at it.
+
+---
+
 ## [1.2.2] - 2026-08-30
 
 ### Bug Fixes

@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-08-30
+
 ### Added
 - Share links now show a "Last Used" timestamp in Settings → Share Access, updated each time the link is opened
 
