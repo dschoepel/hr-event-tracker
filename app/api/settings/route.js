@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server'
 import { getDb, getSettings } from '@/lib/db'
+import { getSession, requireOwner } from '@/lib/auth'
 
-export async function GET() {
+export async function GET(request) {
+  // Read-only, allowed for viewers too — the Report page needs it.
+  if (!getSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   return NextResponse.json(getSettings())
 }
 
 export async function PUT(request) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   const body = await request.json()
   const db = getDb()
   const upsert = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)')

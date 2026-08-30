@@ -3,8 +3,12 @@ import { join } from 'path'
 import { NextResponse } from 'next/server'
 import { getDb, GPX_DIR, getSettings } from '@/lib/db'
 import { parseGpx, detectSpikes } from '@/lib/gpxParser'
+import { requireOwner } from '@/lib/auth'
 
 export async function POST(request) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(request.url)
     const force    = searchParams.get('force') === 'true'
@@ -93,7 +97,10 @@ export async function POST(request) {
   }
 }
 
-export async function GET() {
+export async function GET(request) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   const db = getDb()
   const rows = db.prepare(`
     SELECT g.*, COUNT(e.id) as event_count

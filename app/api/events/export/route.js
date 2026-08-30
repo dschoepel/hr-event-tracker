@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
+import { requireOwner } from '@/lib/auth'
 
 const eventTime = r => {
   if (r.ride_start_time && r.start_time_seconds != null) {
@@ -17,6 +18,9 @@ const escapeCell = v => {
 }
 
 export async function GET(request) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   const { searchParams } = new URL(request.url)
   const format = searchParams.get('format') === 'json' ? 'json' : 'csv'
 

@@ -2,6 +2,7 @@ import { existsSync } from 'fs'
 import puppeteer from 'puppeteer-core'
 import { getDb, getSettings } from '@/lib/db'
 import { buildReportHtml } from '@/lib/reportTemplate'
+import { getSession } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -26,6 +27,13 @@ function getChromePath() {
 }
 
 export async function GET(request) {
+  if (!getSession(request)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   const { searchParams } = new URL(request.url)
   const start = searchParams.get('start') // YYYY-MM-DD or null
   const end   = searchParams.get('end')   // YYYY-MM-DD or null

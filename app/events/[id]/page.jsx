@@ -40,7 +40,15 @@ export default function EventDetailPage({ params }) {
   const [chartReady, setChartReady] = useState(false)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+  const [role, setRole] = useState(undefined) // undefined = not yet known
   const [form] = Form.useForm()
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(r => r.json())
+      .then(d => setRole(d.role))
+      .catch(() => setRole(null))
+  }, [])
 
   useEffect(() => {
     fetch(`/api/events/${id}`)
@@ -140,20 +148,32 @@ export default function EventDetailPage({ params }) {
       )}
 
       <Form form={form} layout="vertical" onFinish={handleSave} style={{ marginTop: 24 }}>
-        <Form.Item name="notes" label="Notes">
-          <Input.TextArea rows={3} />
-        </Form.Item>
+        {role === 'viewer' ? (
+          event.notes && (
+            <div style={{ marginBottom: 24 }}>
+              <Typography.Text strong>Notes</Typography.Text>
+              <Typography.Paragraph style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{event.notes}</Typography.Paragraph>
+            </div>
+          )
+        ) : (
+          <Form.Item name="notes" label="Notes">
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        )}
         <Form.Item noStyle shouldUpdate={(prev, curr) => prev.frontier_session_ref !== curr.frontier_session_ref}>
           {({ getFieldValue }) => {
-            const ref = getFieldValue('frontier_session_ref')
+            const ref = role === 'viewer' ? event.frontier_session_ref : getFieldValue('frontier_session_ref')
             const isUrl = ref?.startsWith('http')
+            if (role === 'viewer' && !isUrl) return null
             return (
               <>
                 <Form.Item label="Frontier X2 Session Ref">
                   <Compact style={{ width: '100%' }}>
-                    <Form.Item name="frontier_session_ref" noStyle>
-                      <Input placeholder="https://app.frontierxapp.com/shared-workout/..." />
-                    </Form.Item>
+                    {role !== 'viewer' && (
+                      <Form.Item name="frontier_session_ref" noStyle>
+                        <Input placeholder="https://app.frontierxapp.com/shared-workout/..." />
+                      </Form.Item>
+                    )}
                     {isUrl && (
                       <>
                         <Button href={ref} target="_blank" rel="noopener noreferrer" icon={<LinkOutlined />}>Open</Button>
@@ -187,12 +207,21 @@ export default function EventDetailPage({ params }) {
             )
           }}
         </Form.Item>
-        <Form.Item name="confirmed" valuePropName="checked">
-          <Checkbox>Confirmed episode</Checkbox>
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">Save</Button>
-        </Form.Item>
+        {role === 'viewer' ? (
+          <Typography.Paragraph>
+            <Typography.Text strong>Status: </Typography.Text>
+            {event.confirmed ? 'Confirmed episode' : 'Unconfirmed'}
+          </Typography.Paragraph>
+        ) : (
+          <>
+            <Form.Item name="confirmed" valuePropName="checked">
+              <Checkbox>Confirmed episode</Checkbox>
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">Save</Button>
+            </Form.Item>
+          </>
+        )}
       </Form>
     </Card>
     </>

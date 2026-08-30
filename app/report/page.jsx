@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { App, Button, DatePicker, Spin, Tooltip, Typography } from 'antd'
 import { PrinterOutlined, DownloadOutlined } from '@ant-design/icons'
+import Link from 'next/link'
 import styles from './report.module.css'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
 
@@ -91,9 +92,16 @@ export default function ReportPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/events').then(r => r.json()),
-      fetch('/api/settings').then(r => r.json()),
-    ]).then(([evts, stgs]) => {
+      fetch('/api/events'),
+      fetch('/api/settings'),
+    ]).then(async ([eventsRes, settingsRes]) => {
+      // A viewer's share link can be revoked mid-session — reading either
+      // response as 401 means the cookie is stale, not that data is empty.
+      if (eventsRes.status === 401 || settingsRes.status === 401) {
+        window.location.href = '/login?error=invalid_link'
+        return
+      }
+      const [evts, stgs] = await Promise.all([eventsRes.json(), settingsRes.json()])
       setAllEvents(evts.filter(e => e.confirmed))
       setSettings(stgs)
       setLoading(false)
@@ -413,9 +421,7 @@ export default function ReportPage() {
                       </td>
                       <td>
                         {e.frontier_session_ref ? (
-                          <a href={e.frontier_session_ref} target="_blank" rel="noreferrer">
-                            View ECG Recording
-                          </a>
+                          <Link href={`/events/${e.id}`}>View ECG Recording</Link>
                         ) : '—'}
                       </td>
                     </tr>

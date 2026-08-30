@@ -2,8 +2,12 @@ import { existsSync, unlinkSync } from 'fs'
 import { join } from 'path'
 import { NextResponse } from 'next/server'
 import { getDb, GPX_DIR } from '@/lib/db'
+import { requireOwner } from '@/lib/auth'
 
 export async function DELETE(request, { params }) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   const id = Number((await params).id)
   if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 

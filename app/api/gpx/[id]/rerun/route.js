@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getDb, getSettings } from '@/lib/db'
 import { detectSpikes } from '@/lib/gpxParser'
+import { requireOwner } from '@/lib/auth'
 
 export async function POST(request, { params }) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   const id = Number((await params).id)
   if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 

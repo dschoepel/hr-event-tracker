@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
+import { getSession, requireOwner } from '@/lib/auth'
 
 export async function GET(request) {
+  const session = getSession(request)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(request.url)
   const min_peak_hr = searchParams.get('min_peak_hr')
   const start_date = searchParams.get('start_date')
@@ -12,9 +16,14 @@ export async function GET(request) {
              WHERE 1=1`
   const params = []
 
-  if (min_peak_hr) { sql += ' AND peak_hr >= ?'; params.push(Number(min_peak_hr)) }
-  if (start_date)  { sql += ' AND date(created_at) >= ?'; params.push(start_date) }
-  if (end_date)    { sql += ' AND date(created_at) <= ?'; params.push(end_date) }
+  if (session.role === 'viewer') {
+    // Viewers only ever see confirmed episodes — ignore any other filters.
+    sql += ' AND e.confirmed = 1'
+  } else {
+    if (min_peak_hr) { sql += ' AND peak_hr >= ?'; params.push(Number(min_peak_hr)) }
+    if (start_date)  { sql += ' AND date(created_at) >= ?'; params.push(start_date) }
+    if (end_date)    { sql += ' AND date(created_at) <= ?'; params.push(end_date) }
+  }
 
   sql += ' ORDER BY created_at DESC'
 
@@ -22,6 +31,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const denied = requireOwner(request)
+  if (denied) return denied
+
   const body = await request.json()
   const {
     gpx_file_id, start_time_seconds, peak_hr, peak_time_seconds, baseline_before,

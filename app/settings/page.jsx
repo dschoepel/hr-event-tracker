@@ -2,9 +2,9 @@
 import { useEffect, useState, useMemo } from 'react'
 import {
   App, Card, Tabs, Form, InputNumber, Input, Button, Space, Table, Badge, Tag,
-  Typography, Tooltip,
+  Typography, Tooltip, Modal, Select,
 } from 'antd'
-import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons'
+import { ReloadOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
 
 const { Title, Text } = Typography
@@ -373,6 +373,160 @@ function ReportTab() {
   )
 }
 
+function ShareAccessTab() {
+  const { message, modal } = App.useApp()
+  const [links, setLinks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [form] = Form.useForm()
+
+  const load = () => {
+    setLoading(true)
+    fetch('/api/share-links')
+      .then(r => r.json())
+      .then(setLinks)
+      .catch(() => message.error('Failed to load share links'))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(load, [])
+
+  const linkUrl = (token) => `${window.location.origin}/share/${token}`
+
+  const copyLink = (token) => {
+    navigator.clipboard.writeText(linkUrl(token)).then(
+      () => message.success('Link copied to clipboard'),
+      () => message.error('Could not copy — copy it manually from the row')
+    )
+  }
+
+  const create = async (values) => {
+    setCreating(true)
+    try {
+      const res = await fetch('/api/share-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      if (!res.ok) throw new Error()
+      const link = await res.json()
+      setModalOpen(false)
+      form.resetFields()
+      load()
+      copyLink(link.token)
+    } catch {
+      message.error('Failed to create link')
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const revoke = (id) => {
+    modal.confirm({
+      title: 'Revoke this link?',
+      content: 'Anyone using it will be locked out immediately, even if they already have it open.',
+      okText: 'Revoke',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancel',
+      onOk: async () => {
+        await fetch(`/api/share-links/${id}`, { method: 'DELETE' })
+        load()
+      },
+    })
+  }
+
+  const statusTag = (link) => {
+    if (link.revoked_at) return <Tag>Revoked</Tag>
+    if (new Date(link.expires_at) < new Date()) return <Tag>Expired</Tag>
+    return <Tag color="success">Active</Tag>
+  }
+
+  const isLive = (link) => !link.revoked_at && new Date(link.expires_at) >= new Date()
+
+  const columns = [
+    {
+      title: 'Label',
+      dataIndex: 'label',
+      render: v => v || <Text type="secondary">(no label)</Text>,
+    },
+    {
+      title: 'Created',
+      dataIndex: 'created_at',
+      width: 120,
+      render: v => new Date(v + 'Z').toLocaleDateString(),
+    },
+    {
+      title: 'Expires',
+      dataIndex: 'expires_at',
+      width: 120,
+      render: v => new Date(v).toLocaleDateString(),
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      width: 100,
+      render: (_, r) => statusTag(r),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 170,
+      render: (_, r) => (
+        <Space>
+          {isLive(r) && (
+            <Tooltip title="Copy share link">
+              <Button size="small" icon={<CopyOutlined />} onClick={() => copyLink(r.token)} />
+            </Tooltip>
+          )}
+          {!r.revoked_at && (
+            <Button size="small" danger onClick={() => revoke(r.id)}>Revoke</Button>
+          )}
+        </Space>
+      ),
+    },
+  ]
+
+  return (
+    <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+      <Card size="small">
+        <Text type="secondary">
+          Share links give read-only access to the Report and individual confirmed episode
+          pages — no Settings, uploads, or editing. A link works any number of times until it
+          expires or you revoke it here.
+        </Text>
+      </Card>
+      <Button type="primary" onClick={() => setModalOpen(true)} style={{ alignSelf: 'flex-start' }}>
+        New Share Link
+      </Button>
+      <Table rowKey="id" columns={columns} dataSource={links} loading={loading} pagination={false} size="small" />
+      <Modal
+        title="New Share Link"
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onOk={() => form.submit()}
+        confirmLoading={creating}
+        okText="Create & Copy Link"
+      >
+        <Form form={form} layout="vertical" onFinish={create} initialValues={{ days: 7 }}>
+          <Form.Item name="label" label="Label" extra="e.g. “Dr. Smith — Aug visit”, so you remember who this is for.">
+            <Input placeholder="Optional label" />
+          </Form.Item>
+          <Form.Item name="days" label="Expires in" rules={[{ required: true }]}>
+            <Select options={[
+              { value: 3, label: '3 days' },
+              { value: 7, label: '7 days' },
+              { value: 14, label: '14 days' },
+              { value: 30, label: '30 days' },
+              { value: 90, label: '90 days' },
+            ]} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Space>
+  )
+}
+
 export default function SettingsPage() {
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
@@ -387,6 +541,7 @@ export default function SettingsPage() {
           { key: 'detection', label: 'Detection Thresholds', children: <DetectionTab /> },
           { key: 'gpx',       label: 'GPX Files',            children: <GpxFilesTab /> },
           { key: 'report',    label: 'Report',               children: <ReportTab /> },
+          { key: 'share',     label: 'Share Access',         children: <ShareAccessTab /> },
         ]}
       />
     </Space>

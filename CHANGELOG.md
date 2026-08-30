@@ -7,6 +7,14 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Owner login — the app now requires a password (`OWNER_PASSWORD_HASH`) to view anything; previously it was open to anyone with the URL
+- Doctor/health-professional share links (Settings → Share Access) — time-limited, read-only links scoped to the Report page and individual confirmed episode pages; reusable until they expire or are revoked, revocation is instant
+- `npm run auth:hash-password` — generates the `OWNER_PASSWORD_HASH` env value
+
+### Changed
+- The Report page's "View ECG Recording" link now opens the episode's detail page (chart, stats, and the Frontier X2 link) instead of jumping straight to the external Frontier URL
+
 ## [1.1.2] - 2026-06-17
 
 ### Changed

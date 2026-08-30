@@ -4,7 +4,7 @@
 
 HR Event Tracker detects and logs unusual heart rate episodes from cycling workout GPX files. It parses HR streams, runs an automatic spike-detection algorithm, and provides a review UI for confirming events, adding notes, and linking ECG recordings. Confirmed events can be exported to CSV/JSON or rendered as a doctor-shareable PDF report.
 
-**Tier**: 1 (SQLite, no auth)
+**Tier**: 1 (SQLite, custom cookie-based auth)
 **UI**: Ant Design v6
 **Version**: see `VERSION.md`
 
@@ -18,7 +18,7 @@ HR Event Tracker detects and logs unusual heart rate episodes from cycling worko
 | UI | Ant Design v6, Recharts (HR/power chart) |
 | Database | SQLite via `node:sqlite` (Node.js built-in, no ORM) |
 | PDF generation | Puppeteer Core + system Chromium (Alpine) |
-| Auth | None |
+| Auth | Single owner password + time-limited doctor share links (`lib/auth.js`, signed cookies, no session store) |
 | Hosting | Self-hosted VPS (Docker, Alpine-based image) |
 | CI/CD | GitHub Actions → GHCR → deploy script over SSH |
 
@@ -30,31 +30,44 @@ HR Event Tracker detects and logs unusual heart rate episodes from cycling worko
 app/
   layout.jsx                  Root layout (ThemeProvider, AntDThemeProvider, nav, footer)
   page.jsx                    Redirects / → /events
+  login/page.jsx              Owner password login
+  share/[token]/route.js      Public — redeems a doctor share link into a viewer cookie
   events/
-    page.jsx                  Event History — main list view (grouped by month → ride)
-    [id]/page.jsx             Event detail — HR/power chart, notes, confirmation
+    page.jsx                  Event History — main list view (grouped by month → ride) — owner only
+    [id]/page.jsx             Event detail — HR/power chart, notes, confirmation (read-only for viewers)
   report/
-    page.jsx                  Doctor report — live preview with date range filter
+    page.jsx                  Doctor report — live preview with date range filter — owner + viewer
     report.module.css         Print-optimised styles for the report
   settings/
-    page.jsx                  Settings — Detection, GPX Files, Report tabs
+    page.jsx                  Settings — Detection, GPX Files, Report, Share Access tabs — owner only
   api/
-    health/route.js           GET /api/health — liveness probe
+    health/route.js           GET /api/health — liveness probe (public)
+    auth/
+      login/route.js          POST — verify owner password, set owner cookie
+      logout/route.js         POST — clear session cookies
+      session/route.js        GET — current role (owner | viewer | null)
+    share-links/
+      route.js                GET (list) | POST (create) — owner only
+      [id]/route.js           DELETE — revoke a link — owner only
     events/
-      route.js                GET (list, filterable) | POST (manual create)
-      [id]/route.js           GET | PATCH (confirm, notes, frontier ref) | DELETE
-      export/route.js         GET /api/events/export?format=csv|json
+      route.js                GET (list, filterable) | POST (manual create) — viewers see confirmed only
+      [id]/route.js           GET | PATCH (confirm, notes, frontier ref) | DELETE — PATCH/DELETE owner only
+      export/route.js         GET /api/events/export?format=csv|json — owner only
     gpx/
-      route.js                POST (upload + parse + detect) | GET (file list)
-      [id]/route.js           DELETE (file + cascade events)
-      [id]/rerun/route.js     POST — re-run detection from saved HR stream
+      route.js                POST (upload + parse + detect) | GET (file list) — owner only
+      [id]/route.js           DELETE (file + cascade events) — owner only
+      [id]/rerun/route.js     POST — re-run detection from saved HR stream — owner only
     settings/
-      route.js                GET | PUT (detection thresholds + report fields)
+      route.js                GET (any session) | PUT (detection thresholds + report fields) — owner only
     report/
-      pdf/route.js            GET — server-side PDF via Puppeteer
+      pdf/route.js            GET — server-side PDF via Puppeteer — owner + viewer
+
+middleware.js                 Edge-safe route gate — redirects to /login (or scopes viewers to
+                               /report and /events/<id>) based on cookie presence only; API routes
+                               do the real verification (see lib/auth.js)
 
 components/
-  ResponsiveNav.jsx           Top nav bar (desktop Menu + mobile Drawer)
+  ResponsiveNav.jsx           Top nav bar (desktop Menu + mobile Drawer), role-aware, sign-out
   AntDThemeProvider.jsx       ConfigProvider + App wrapper (enables useApp())
   AppFooter.jsx               Version footer
 
@@ -63,8 +76,14 @@ contexts/
 
 lib/
   db.js                       SQLite singleton, schema init, getSettings()
+  auth.js                     Signed session cookies + share-link verification (Next.js route handlers)
+  passwordHash.js             Owner password hashing (node:crypto only — no Next.js dependency,
+                               so scripts/hash-password.js can run under plain `node`)
   gpxParser.js                GPX → HR/power stream parser + detectSpikes()
   reportTemplate.js           Self-contained HTML builder for Puppeteer PDF
+
+scripts/
+  hash-password.js            CLI: generates OWNER_PASSWORD_HASH from a plaintext password
 
 deploy/
   docker-compose.yml          Production compose (app + volume mounts)
@@ -139,6 +158,45 @@ Key-value store for user-configurable values.
 | `report.hrDevice` | `Frontier X2` | Device name in report and ECG column header |
 | `report.appUrl` | _(empty)_ | App URL shown in report footer |
 
+### `share_links`
+Read-only doctor/health-professional access links, created from Settings → Share Access.
+A link works any number of times until it expires or is revoked — not a one-time code.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INTEGER PK | |
+| `token` | TEXT UNIQUE | Random 24-byte token, embedded in `/share/{token}` |
+| `label` | TEXT | Optional note (e.g. "Dr. Smith — Aug visit") |
+| `created_at` | TEXT | UTC datetime |
+| `expires_at` | TEXT | ISO datetime; link is inert after this |
+| `revoked_at` | TEXT | Set when manually revoked; inert immediately (checked on every request, not cached in the cookie) |
+
+---
+
+## Auth & Access Control (`lib/auth.js`, `middleware.js`)
+
+Two roles, no user table — just one owner and any number of share links:
+
+- **owner** — unlocked at `/login` with a single password (`OWNER_PASSWORD_HASH`,
+  generated via `scripts/hash-password.js`). Full read/write, ~30-day session.
+- **viewer** — unlocked by visiting a `/share/{token}` link created from
+  Settings → Share Access. Read-only, confirmed episodes only, scoped to the
+  Report page and individual event-detail pages. The link is reusable until
+  it expires or is revoked — not a one-time code.
+
+Both roles are stored as signed (HMAC-SHA256), httpOnly cookies — `hret_owner`
+and `hret_viewer` — with no server-side session store. The viewer cookie only
+carries a `share_links.id`; every request re-checks that row's `revoked_at`/
+`expires_at`, so revoking a link from Settings takes effect immediately even
+for a browser that already has the cookie.
+
+`middleware.js` runs on the Edge runtime and only checks cookie *presence* to
+redirect page navigation (`/login`, or a viewer hitting an owner-only page
+gets bounced to `/report`). It does no signature verification — that needs
+`node:crypto`, which isn't available at the edge. The actual security
+boundary is inside each API route handler (Node runtime), via `getSession()`
+/ `requireOwner()` from `lib/auth.js`.
+
 ---
 
 ## Key Data Flows
@@ -189,6 +247,8 @@ Scans the HR stream sample-by-sample looking for sudden jumps:
 | `PORT` | `3000` | Next.js server port |
 | `HOSTNAME` | `0.0.0.0` | Bind address (must be `0.0.0.0` in Docker) |
 | `NEXT_PUBLIC_APP_VERSION` | _(from VERSION.md at build time)_ | Shown in footer |
+| `SESSION_SECRET` | _(none — required)_ | Signs owner + viewer session cookies. Generate with `openssl rand -base64 32` |
+| `OWNER_PASSWORD_HASH` | _(none — required)_ | Output of `npm run auth:hash-password -- '<password>'` |
 
 ---
 

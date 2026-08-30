@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:init": "node lib/db.js"
+    "db:init": "node lib/db.js",
+    "auth:hash-password": "node scripts/hash-password.js"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
