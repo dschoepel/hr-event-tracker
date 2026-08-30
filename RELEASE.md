@@ -1,3 +1,11 @@
+## [1.2.1] - 2026-08-30
+
+### Maintenance
+
+- No user-visible changes. This release switches how the app is deployed to the server (now managed through Dockhand instead of a manual SSH script) — internal only.
+
+---
+
 ## [1.2.0] - 2026-08-30
 
 ### What's New

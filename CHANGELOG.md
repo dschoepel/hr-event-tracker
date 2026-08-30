@@ -7,6 +7,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-08-30
+
+### Changed
+- Deployment now goes entirely through Dockhand instead of the SSH + `deploy.sh` flow — `deploy/docker-compose.yml` sources its config and secrets (`SESSION_SECRET`, `OWNER_PASSWORD_HASH`, etc.) from Dockhand's Environment Variables panel via `${VAR_NAME}` interpolation instead of a host-side `.env.production` file
+- Removed `deploy/scripts/deploy.sh`, the `.claude/skills/deploy` skill, and the now-unused `.env.deploy.example` / `deploy/.env.production.example` templates
+
 ## [1.2.0] - 2026-08-30
 
 ### Added
