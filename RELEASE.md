@@ -1,3 +1,11 @@
+## [1.2.2] - 2026-08-30
+
+### Bug Fixes
+
+- **Share links now actually open for your doctor.** Opening a share link (or landing on the login page from a link) sent people to the app's internal server address instead of the real website — so it just looked broken. Both now correctly land on the real domain.
+
+---
+
 ## [1.2.1] - 2026-08-30
 
 ### Maintenance

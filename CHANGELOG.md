@@ -7,8 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-08-30
+
 ### Fixed
-- Share-link and login redirects no longer resolve to the container's internal address (e.g. `http://0.0.0.0:3000/report`) when the reverse proxy doesn't rewrite the `Host` header — `middleware.js` and `/share/[token]` now prefer `X-Forwarded-Proto`/`X-Forwarded-Host` when building the redirect URL (new `lib/publicUrl.js`)
+- Share-link and login redirects no longer resolve to the container's internal bind address (e.g. `https://0.0.0.0:3000/report`) instead of the public domain — `middleware.js` and `/share/[token]` built their redirect URL from `request.url`, which in this standalone-server deployment fell back to the server's own `HOSTNAME`/`APP_PORT` rather than the (correctly forwarded) request `Host`. They now build it from `X-Forwarded-Proto`/`X-Forwarded-Host` explicitly instead (new `lib/publicUrl.js`)
 
 ## [1.2.1] - 2026-08-30
 
