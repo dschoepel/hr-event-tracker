@@ -1,3 +1,17 @@
+## [1.2.0] - 2026-08-30
+
+### What's New
+
+- **The app is now private.** Previously anyone with the URL could see your heart rate history. Now you sign in with a password before you can view anything.
+
+- **Share access with your doctor.** From Settings → Share Access, create a link to hand to a doctor or other health professional. It opens straight to your Report and lets them click into individual confirmed episodes (chart, stats, and the ECG recording link) — but nothing else. They can't see unconfirmed episodes, upload files, or change any settings. Give the link a label (like "Dr. Smith — Aug visit") and pick how long it stays active — 3 to 90 days. It keeps working for that whole window, and you can revoke it at any time from the same screen; revoking locks the person out immediately, even if they still have the page open.
+
+### Improvements
+
+- On the Report page, clicking "View ECG Recording" now takes you to the episode's detail page — with the chart and stats for context — instead of jumping straight to the external Frontier X2 link.
+
+---
+
 ## [1.1.2] - 2026-06-17
 
 ### Improvements

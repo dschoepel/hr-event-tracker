@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-30
+
 ### Added
 - Owner login — the app now requires a password (`OWNER_PASSWORD_HASH`) to view anything; previously it was open to anyone with the URL
 - Doctor/health-professional share links (Settings → Share Access) — time-limited, read-only links scoped to the Report page and individual confirmed episode pages; reusable until they expire or are revoked, revocation is instant
@@ -14,6 +16,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - The Report page's "View ECG Recording" link now opens the episode's detail page (chart, stats, and the Frontier X2 link) instead of jumping straight to the external Frontier URL
+
+### Fixed
+- `next.config.mjs` no longer triggers an "Invalid next.config.mjs options" warning on startup (`outputFileTracingIncludes` moved out of `experimental` per Next.js 15)
 
 ## [1.1.2] - 2026-06-17
 
