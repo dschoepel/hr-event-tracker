@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { publicUrl } from '@/lib/publicUrl'
 
 // Coarse, edge-safe gate: checks cookie *presence* only (no crypto — that
 // needs node:crypto, which isn't available in the Edge runtime middleware
@@ -20,10 +21,10 @@ export function middleware(request) {
 
   if (request.cookies.has(VIEWER_COOKIE)) {
     if (VIEWER_ALLOWED.some(re => re.test(pathname))) return NextResponse.next()
-    return NextResponse.redirect(new URL('/report', request.url))
+    return NextResponse.redirect(publicUrl('/report', request))
   }
 
-  return NextResponse.redirect(new URL('/login', request.url))
+  return NextResponse.redirect(publicUrl('/login', request))
 }
 
 export const config = {
