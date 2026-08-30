@@ -86,10 +86,9 @@ scripts/
   hash-password.js            CLI: generates OWNER_PASSWORD_HASH from a plaintext password
 
 deploy/
-  docker-compose.yml          Production compose (app + volume mounts)
-  scripts/deploy.sh           Maintenance mode → pull image → healthcheck → go live
+  docker-compose.yml          Production compose — deployed as a Dockhand stack (see "Deployment" below)
   nginx/                      SWAG/nginx config
-  .env.production.example     Environment variable reference
+  swag/                       Maintenance page shown by the reverse proxy during upgrades
 
 .github/workflows/            GitHub Actions CI (build + push GHCR image)
 ```
@@ -254,10 +253,43 @@ Scans the HR stream sample-by-sample looking for sudden jumps:
 
 ## Deployment
 
-1. Push a version tag: `git tag vX.Y.Z && git push --tags`
-2. GitHub Actions builds the Docker image and pushes it to GHCR
-3. Run `/deploy` (or manually): `ssh vps 'bash -s' < deploy/scripts/deploy.sh vX.Y.Z`
-   - Enables maintenance page, pulls new image, starts container, runs healthcheck, disables maintenance page
-4. The container mounts two host volumes:
-   - `/data/hr-event-tracker/db` → `/app/data` (SQLite database)
+Deployed as a [Dockhand](https://dockhand.dev)-managed stack — Dockhand owns
+pulling the image, recreating the container, and polling its healthcheck.
+There is no SSH deploy script or `/deploy` skill; those were retired once
+Dockhand could do this work itself.
+
+1. `/release` bumps `VERSION.md`, updates `CHANGELOG.md`/`RELEASE.md`, tags,
+   and pushes — `git push --tags` triggers GitHub Actions, which builds the
+   image and pushes it to GHCR.
+2. Once the Actions run is green, redeploy the `hr-event-tracker` stack from
+   Dockhand's UI. It pulls `ghcr.io/dschoepel/hr-event-tracker:latest`,
+   recreates the container, and waits on the compose healthcheck
+   (`GET /api/health`) itself.
+3. The container mounts two host volumes:
+   - `/data/hr-event-tracker/data` → `/app/data` (SQLite database)
    - `/data/hr-event-tracker/gpx` → `/app/gpx` (saved GPX files)
+
+### Secrets delivery: Dockhand's Environment Variables panel, not a host file or the image
+
+`SESSION_SECRET`, `OWNER_PASSWORD_HASH`, and any future runtime secret are
+never baked into the Docker image or committed to the repo — the image is
+built by GitHub Actions from the public repo, so anything in the repo or the
+image is effectively public. They're set instead in Dockhand's "Environment
+Variables" panel for this stack (mask `SESSION_SECRET` and
+`OWNER_PASSWORD_HASH` there), and `deploy/docker-compose.yml`'s `environment:`
+block references them as `${VAR_NAME}` so Dockhand interpolates real values
+into the compose file before it creates the container. **Every var the `app`
+service needs must have a corresponding `${VAR_NAME}` line in that
+`environment:` block** — a value existing in Dockhand's panel but not
+referenced there does nothing; recreating the stack won't pick it up either,
+since it was never wired in to begin with. Current list: `APP_PORT`, `DB_PATH`,
+`GPX_PATH`, `HOSTNAME`, `PUID`, `PGID`, `TZ`, `SESSION_SECRET`,
+`OWNER_PASSWORD_HASH` (see the Environment Variables table above for what each
+does).
+
+This also matters because `output: 'standalone'` (`next.config.mjs`) produces
+a plain `server.js` that reads `process.env` directly — it does **not** do
+Next's usual `.env`/`.env.production` auto-loading, so a `.env` file dropped
+inside the image would never be read anyway. The vars have to arrive as real
+process environment variables before `node server.js` starts, which is what
+Dockhand's interpolation does at container-creation time.

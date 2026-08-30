@@ -39,14 +39,14 @@ git push --tags
 ```
 
 GitHub Actions builds the Docker image and pushes to GHCR.
-Then run `/deploy` in Claude Code, or manually:
-```bash
-ssh user@vps './deploy/scripts/deploy.sh v1.0.0'
-```
+Then redeploy the `hr-event-tracker` stack in Dockhand — it pulls the new
+image, recreates the container, and polls the healthcheck itself.
 
 ## Environment Variables
 
-See `.env.example` and `deploy/.env.production.example`.
+See `.env.example` for local dev. Production env vars (including secrets like
+`SESSION_SECRET` and `OWNER_PASSWORD_HASH`) are set in Dockhand's Environment
+Variables panel for the stack — see `ARCHITECTURE.md` → Deployment.
 
 ## Versioning
 

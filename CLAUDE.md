@@ -43,6 +43,7 @@ docker-compose up -d        # Tier 3: full Supabase stack
 - `RELEASE.md` — overwritten by `/release` skill with current release notes
 
 ## Deployment
-- Push tag → GitHub Actions builds GHCR image → run `/deploy`
-- Deploy script: `deploy/scripts/deploy.sh` — handles maintenance mode + healthcheck
+- Push tag → GitHub Actions builds GHCR image → redeploy the `hr-event-tracker` stack in Dockhand
+- Dockhand pulls the image, recreates the container, and polls the compose healthcheck itself — no SSH script, no `/deploy` skill (retired)
+- Secrets (`SESSION_SECRET`, `OWNER_PASSWORD_HASH`, etc.) live in Dockhand's Environment Variables panel, referenced from `deploy/docker-compose.yml`'s `environment:` block as `${VAR_NAME}` — see `ARCHITECTURE.md` → Deployment
 - Do NOT push without a version tag if the image needs to deploy

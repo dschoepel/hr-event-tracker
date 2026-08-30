@@ -1,4 +1,8 @@
-# Production deployment — used on the VPS via deploy.sh
+# Production deployment — managed as a Dockhand stack.
+# Env vars below are populated from Dockhand's Environment Variables panel for
+# this stack (mask SESSION_SECRET / OWNER_PASSWORD_HASH there) — see
+# ARCHITECTURE.md "Deployment" for the full list and why there's no separate
+# host .env file anymore.
 # Tier 1: app only
 # Tier 2: app + db
 # Tier 3: see deploy/supabase/ for the full Supabase stack
@@ -10,8 +14,13 @@ services:
     user: "${PUID:-1001}:${PGID:-1001}"
     ports:
       - "${APP_PORT:-3000}:3000"
-    env_file:
-      - /data/hr-event-tracker/.env.production
+    environment:
+      - DB_PATH=${DB_PATH}
+      - GPX_PATH=${GPX_PATH}
+      - HOSTNAME=${HOSTNAME}
+      - TZ=${TZ}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - OWNER_PASSWORD_HASH=${OWNER_PASSWORD_HASH}
     volumes:
       - /data/hr-event-tracker/data:/app/data   # SQLite persistence
       - /data/hr-event-tracker/gpx:/app/gpx     # GPX file storage
@@ -32,8 +41,10 @@ services:
   #   image: postgres:17-alpine
   #   container_name: hr-event-tracker-db
   #   restart: unless-stopped
-  #   env_file:
-  #     - /data/hr-event-tracker/.env.production
+  #   environment:
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - POSTGRES_DB=${POSTGRES_DB}
   #   volumes:
   #     - pg_data:/var/lib/postgresql/data
 

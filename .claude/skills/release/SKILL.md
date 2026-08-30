@@ -41,4 +41,6 @@ You are executing the `/release` skill for hr-event-tracker. Orchestrate a full 
 9. **Report**: Print the GitHub Actions URL so the user can monitor the build:
    `https://github.com/dschoepel/hr-event-tracker/actions`
 
-After pushing, the CI build takes 2–5 minutes. When it's green, run `/deploy` to deploy to the VPS.
+After pushing, the CI build takes 2–5 minutes. When it's green, redeploy the
+`hr-event-tracker` stack in Dockhand to pull the new image — there is no
+`/deploy` skill; Dockhand does the pull/recreate/healthcheck itself.
