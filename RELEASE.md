@@ -1,3 +1,17 @@
+## [1.3.0] - 2026-10-09
+
+### What's New
+
+- **Each ride now shows its distance, climbing and average heart rate.** You'll see total distance, elevation gain and average HR on each episode's detail page, in Settings → GPX Files, under the ride name in the report and PDF, and in the CSV/JSON export, so you and your doctor can see how hard each ride was.
+- **Choose miles or kilometers.** A new Settings → Display tab sets the default units. A small mi/km toggle on each page lets anyone viewing, including your doctor through a share link, switch for themselves.
+- **Fill in stats for rides you've already uploaded.** Click "Recalculate ride stats" in Settings → GPX Files and the app reads your saved GPX files and adds the stats to older rides. Rides whose GPX file is missing are skipped.
+
+### Improvements
+
+- **A roomier episode table in the report.** Date and time now share one column with a shorter date, so the Activity column has more space for the ride name and its stats.
+
+---
+
 ## [1.2.3] - 2026-08-30
 
 ### What's New

@@ -7,10 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-09
+
 ### Added
 - Ride stats — total distance, elevation gain and average HR — are now computed from each uploaded GPX and shown on the episode detail page, the Settings → GPX Files table, the report page / PDF (under each ride name) and the CSV/JSON export (`ride_distance_km`, `ride_elevation_gain_m`, `ride_avg_hr`, always metric)
 - Settings → Display tab sets the default units (miles/feet or kilometers/meters); a mi/km toggle on each page lets any viewer override it for their own browser
 - Settings → GPX Files → "Recalculate ride stats" backfills stats for previously uploaded rides from their saved `.gpx` files; re-running detection on a ride also refreshes its stats
+
+### Changed
+- Report episode table (page and PDF) merges Date and Time into one column with a shorter date format, and long column headers now wrap — gives the Activity column room for the ride stats line
 
 ## [1.2.3] - 2026-08-30
 
