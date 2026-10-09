@@ -3,6 +3,7 @@ import puppeteer from 'puppeteer-core'
 import { getDb, getSettings } from '@/lib/db'
 import { buildReportHtml } from '@/lib/reportTemplate'
 import { getSession } from '@/lib/auth'
+import { UNITS } from '@/lib/units'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -48,7 +49,8 @@ export async function GET(request) {
 
   const db = getDb()
   let sql = `
-    SELECT e.*, f.ride_name, f.ride_date AS file_ride_date, f.ride_start_time, f.filename
+    SELECT e.*, f.ride_name, f.ride_date AS file_ride_date, f.ride_start_time, f.filename,
+           f.distance_m, f.elevation_gain_m, f.avg_hr
     FROM hr_events e
     LEFT JOIN gpx_files f ON f.id = e.gpx_file_id
     WHERE e.confirmed = 1`
@@ -59,7 +61,9 @@ export async function GET(request) {
   const events = db.prepare(sql).all(...params)
 
   const settings = getSettings()
-  const html = buildReportHtml(events, settings)
+  const unitsParam = searchParams.get('units')
+  const units = UNITS.includes(unitsParam) ? unitsParam : settings.display_units
+  const html = buildReportHtml(events, settings, { units })
 
   const browser = await puppeteer.launch({
     executablePath: chromePath,

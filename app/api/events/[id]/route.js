@@ -9,7 +9,8 @@ export async function GET(request, { params }) {
   const { id } = await params
   const db = getDb()
   const event = db.prepare(`
-    SELECT e.*, f.filename, f.ride_name, f.ride_date AS file_ride_date, f.ride_start_time
+    SELECT e.*, f.filename, f.ride_name, f.ride_date AS file_ride_date, f.ride_start_time,
+           f.distance_m, f.elevation_gain_m, f.avg_hr
     FROM hr_events e LEFT JOIN gpx_files f ON f.id = e.gpx_file_id
     WHERE e.id = ?
   `).get(id)

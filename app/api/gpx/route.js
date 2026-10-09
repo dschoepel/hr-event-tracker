@@ -65,9 +65,11 @@ export async function POST(request) {
     const storedFilename = force ? file.name.replace(/\.gpx$/i, ' (duplicate).gpx') : file.name
 
     const fileRow = db.prepare(`
-      INSERT INTO gpx_files (filename, ride_name, ride_date, ride_start_time, duration_seconds)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(storedFilename, metadata.ride_name, metadata.ride_date, metadata.ride_start_time, metadata.duration_seconds)
+      INSERT INTO gpx_files (filename, ride_name, ride_date, ride_start_time, duration_seconds,
+                             distance_m, elevation_gain_m, avg_hr)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(storedFilename, metadata.ride_name, metadata.ride_date, metadata.ride_start_time, metadata.duration_seconds,
+           metadata.distance_m, metadata.elevation_gain_m, metadata.avg_hr)
 
     const gpxFileId = Number(fileRow.lastInsertRowid)
 

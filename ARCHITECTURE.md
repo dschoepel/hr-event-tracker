@@ -39,7 +39,7 @@ app/
     page.jsx                  Doctor report — live preview with date range filter — owner + viewer
     report.module.css         Print-optimised styles for the report
   settings/
-    page.jsx                  Settings — Detection, GPX Files, Report, Share Access tabs — owner only
+    page.jsx                  Settings — Detection, GPX Files, Report, Display, Share Access tabs — owner only
   api/
     health/route.js           GET /api/health — liveness probe (public)
     auth/
@@ -56,9 +56,10 @@ app/
     gpx/
       route.js                POST (upload + parse + detect) | GET (file list) — owner only
       [id]/route.js           DELETE (file + cascade events) — owner only
-      [id]/rerun/route.js     POST — re-run detection from saved HR stream — owner only
+      [id]/rerun/route.js     POST — re-run detection from saved HR stream (+ refresh ride stats) — owner only
+      backfill-stats/route.js POST — recompute ride stats for every saved GPX file — owner only
     settings/
-      route.js                GET (any session) | PUT (detection thresholds + report fields) — owner only
+      route.js                GET (any session) | PUT (detection thresholds + report + display fields) — owner only
     report/
       pdf/route.js            GET — server-side PDF via Puppeteer — owner + viewer
 
@@ -70,6 +71,7 @@ components/
   ResponsiveNav.jsx           Top nav bar (desktop Menu + mobile Drawer), role-aware, sign-out
   AntDThemeProvider.jsx       ConfigProvider + App wrapper (enables useApp())
   AppFooter.jsx               Version footer
+  UnitsToggle.jsx             mi/ft ↔ km/m toggle + useUnits() hook (per-viewer override in localStorage)
 
 contexts/
   ThemeContext.jsx            Light/dark theme toggle
@@ -112,6 +114,11 @@ One row per uploaded GPX file.
 | `ride_date` | TEXT | YYYY-MM-DD, from GPX start time |
 | `ride_start_time` | TEXT | ISO 8601 UTC — used as duplicate key |
 | `duration_seconds` | INTEGER | Total ride duration |
+| `distance_m` | REAL | Total ride distance (haversine over every trackpoint) |
+| `elevation_gain_m` | REAL | Sum of all `<ele>` climbs — matches Strava within ~0.5% for Zwift files |
+| `avg_hr` | INTEGER | Mean HR over the ride (dropouts < 20 bpm excluded) |
+
+Ride stats are computed by `computeRideStats()` in `lib/gpxParser.js` and stored in meters; `lib/units.js` formats them for display. They are `NULL` when the GPX lacks that data, or for rides uploaded before v1.3 whose `.gpx` is no longer on disk.
 
 ### `hr_streams`
 Raw HR (and optionally power) data for each ride, stored as JSON. Retained for rerun detection without re-uploading.
@@ -156,6 +163,7 @@ Key-value store for user-configurable values.
 | `report.activityType` | `Indoor cycling (Zwift)` | Shown in report narrative |
 | `report.hrDevice` | `Frontier X2` | Device name in report and ECG column header |
 | `report.appUrl` | _(empty)_ | App URL shown in report footer |
+| `display.units` | `imperial` | Default units for ride distance/elevation (`imperial` \| `metric`); viewers can override per-browser with the toggle |
 
 ### `share_links`
 Read-only doctor/health-professional access links, created from Settings → Share Access.
@@ -214,11 +222,17 @@ boundary is inside each API route handler (Node runtime), via `getSession()`
 2. Route reads `hr_streams.stream_json` for that file
 3. Deletes existing `hr_events` for the file
 4. Runs `detectSpikes()` with fresh settings → re-inserts events
+5. If the `.gpx` is still on disk, re-parses it and refreshes the ride stats (`refreshRideStats()`)
+
+### Ride Stats Backfill
+1. Settings → GPX Files → "Recalculate ride stats" POSTs to `/api/gpx/backfill-stats`
+2. For every `gpx_files` row whose `original_path` exists, re-parses the file and updates `distance_m` / `elevation_gain_m` / `avg_hr`
+3. Returns `{ updated, skippedMissingFile }` — idempotent, safe to run repeatedly
 
 ### PDF Report Generation
-1. Client GETs `/api/report/pdf?start=YYYY-MM-DD&end=YYYY-MM-DD`
+1. Client GETs `/api/report/pdf?start=YYYY-MM-DD&end=YYYY-MM-DD&units=imperial|metric` (`units` falls back to `display.units`)
 2. Route queries confirmed events filtered by date range
-3. `buildReportHtml(events, settings)` produces a self-contained HTML string
+3. `buildReportHtml(events, settings, { units })` produces a self-contained HTML string
 4. Puppeteer launches headless Chromium, calls `page.setContent(html)`
 5. `page.pdf()` renders to A4 with a custom footer (page numbers + date)
 6. PDF buffer returned as `application/pdf` attachment

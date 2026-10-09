@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDb, getSettings } from '@/lib/db'
-import { detectSpikes } from '@/lib/gpxParser'
+import { detectSpikes, refreshRideStats } from '@/lib/gpxParser'
 import { requireOwner } from '@/lib/auth'
 
 export async function POST(request, { params }) {
@@ -39,6 +39,9 @@ export async function POST(request, { params }) {
                  c.hr_after_drop, c.drop_time_seconds, c.duration_seconds, c.jump_magnitude,
                  c.drop_magnitude, c.detection_method, c.data_truncated)
     }
+
+    const fileRow = db.prepare('SELECT original_path FROM gpx_files WHERE id = ?').get(id)
+    await refreshRideStats(db, id, fileRow?.original_path)
 
     return NextResponse.json({ eventsFound: candidates.length, gpxFileId: id })
   } catch (err) {

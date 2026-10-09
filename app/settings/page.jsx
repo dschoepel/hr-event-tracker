@@ -4,8 +4,10 @@ import {
   App, Card, Tabs, Form, InputNumber, Input, Button, Space, Table, Badge, Tag,
   Typography, Tooltip, Modal, Select,
 } from 'antd'
-import { ReloadOutlined, DeleteOutlined, CopyOutlined } from '@ant-design/icons'
+import { ReloadOutlined, DeleteOutlined, CopyOutlined, CalculatorOutlined } from '@ant-design/icons'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
+import UnitsToggle, { useUnits } from '@/components/UnitsToggle'
+import { fmtDistance, fmtElevation, fmtAvgHr } from '@/lib/units'
 
 const { Title, Text } = Typography
 
@@ -91,6 +93,8 @@ function GpxFilesTab() {
   const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [rerunningId, setRerunningId] = useState(null)
+  const [backfilling, setBackfilling] = useState(false)
+  const [units, setUnits] = useUnits()
 
   const load = () => {
     setLoading(true)
@@ -140,6 +144,47 @@ function GpxFilesTab() {
       setRerunningId(null)
     }
   }
+
+  const handleBackfill = async () => {
+    setBackfilling(true)
+    try {
+      const res = await fetch('/api/gpx/backfill-stats', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      const skipped = data.skippedMissingFile ? ` (${data.skippedMissingFile} skipped — GPX file missing)` : ''
+      message.success(`Ride stats recalculated for ${data.updated} ride(s)${skipped}`)
+      load()
+    } catch (err) {
+      message.error(`Recalculation failed: ${err.message}`)
+    } finally {
+      setBackfilling(false)
+    }
+  }
+
+  // Distance / elevation / avg HR columns; `ride` picks the gpx_files row for a table row
+  const statColumns = (ride) => [
+    {
+      title: 'Distance',
+      key: 'distance',
+      width: 90,
+      align: 'right',
+      render: (_, r) => fmtDistance(ride(r)?.distance_m, units),
+    },
+    {
+      title: 'Elevation',
+      key: 'elevation',
+      width: 90,
+      align: 'right',
+      render: (_, r) => fmtElevation(ride(r)?.elevation_gain_m, units),
+    },
+    {
+      title: 'Avg HR',
+      key: 'avg_hr',
+      width: 80,
+      align: 'right',
+      render: (_, r) => fmtAvgHr(ride(r)?.avg_hr),
+    },
+  ]
 
   const handleDelete = (id, rideName) => {
     modal.confirm({
@@ -195,6 +240,7 @@ function GpxFilesTab() {
       width: 130,
       render: v => new Date(v + 'Z').toLocaleDateString(),
     },
+    ...statColumns(r => r),
     {
       title: 'Episodes',
       dataIndex: 'event_count',
@@ -239,6 +285,8 @@ function GpxFilesTab() {
       width: 130,
       render: (_, r) => new Date(r.latestUpload + 'Z').toLocaleDateString(),
     },
+    // Uploads in a group are the same ride, so show the first one that has stats
+    ...statColumns(r => r.uploads.find(f => f.distance_m != null) ?? r.uploads[0]),
     {
       title: 'Episodes',
       key: 'events',
@@ -280,6 +328,14 @@ function GpxFilesTab() {
           </Space>
         </Card>
       )}
+      <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
+        <Tooltip title="Re-read every saved GPX file and recompute distance, elevation gain and average HR">
+          <Button icon={<CalculatorOutlined />} onClick={handleBackfill} loading={backfilling}>
+            Recalculate ride stats
+          </Button>
+        </Tooltip>
+        <UnitsToggle units={units} onChange={setUnits} />
+      </Space>
       <Table
         rowKey="key"
         columns={parentColumns}
@@ -364,6 +420,56 @@ function ReportTab() {
           extra="Public URL of this app, shown in the report footer."
         >
           <Input placeholder="hr-tracker.example.com" />
+        </Form.Item>
+        <Form.Item style={{ marginBottom: 0 }}>
+          <Button type="primary" htmlType="submit" loading={saving}>Save</Button>
+        </Form.Item>
+      </Form>
+    </Card>
+  )
+}
+
+function DisplayTab() {
+  const { message } = App.useApp()
+  const [form] = Form.useForm()
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(data => form.setFieldsValue({ displayUnits: data.display_units }))
+      .catch(() => message.error('Failed to load settings'))
+  }, [])
+
+  const save = async (values) => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      if (!res.ok) throw new Error()
+      message.success('Display settings saved')
+    } catch {
+      message.error('Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card style={{ maxWidth: 480 }}>
+      <Form form={form} layout="vertical" onFinish={save}>
+        <Form.Item
+          label="Default Units"
+          name="displayUnits"
+          extra="Units for ride distance and elevation on all pages and the PDF report. Anyone viewing can still flip the mi/km toggle for themselves."
+        >
+          <Select options={[
+            { value: 'imperial', label: 'Imperial (miles / feet)' },
+            { value: 'metric',   label: 'Metric (kilometers / meters)' },
+          ]} />
         </Form.Item>
         <Form.Item style={{ marginBottom: 0 }}>
           <Button type="primary" htmlType="submit" loading={saving}>Save</Button>
@@ -547,6 +653,7 @@ export default function SettingsPage() {
           { key: 'detection', label: 'Detection Thresholds', children: <DetectionTab /> },
           { key: 'gpx',       label: 'GPX Files',            children: <GpxFilesTab /> },
           { key: 'report',    label: 'Report',               children: <ReportTab /> },
+          { key: 'display',   label: 'Display',              children: <DisplayTab /> },
           { key: 'share',     label: 'Share Access',         children: <ShareAccessTab /> },
         ]}
       />

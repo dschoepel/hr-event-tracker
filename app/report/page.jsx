@@ -5,11 +5,13 @@ import { PrinterOutlined, DownloadOutlined } from '@ant-design/icons'
 import Link from 'next/link'
 import styles from './report.module.css'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
+import UnitsToggle, { useUnits } from '@/components/UnitsToggle'
+import { fmtRideStats } from '@/lib/units'
 
 const { RangePicker } = DatePicker
 const { Text } = Typography
 
-function DownloadPdfButton({ dateFilter }) {
+function DownloadPdfButton({ dateFilter, units }) {
   const { message } = App.useApp()
   const [loading, setLoading] = useState(false)
 
@@ -19,6 +21,7 @@ function DownloadPdfButton({ dateFilter }) {
       const params = new URLSearchParams()
       if (dateFilter?.[0]) params.set('start', dateFilter[0].format('YYYY-MM-DD'))
       if (dateFilter?.[1]) params.set('end',   dateFilter[1].format('YYYY-MM-DD'))
+      params.set('units', units)
       const qs = params.size ? `?${params}` : ''
 
       const res = await fetch(`/api/report/pdf${qs}`)
@@ -59,7 +62,7 @@ const eventTime = r => {
 }
 
 const fmtDate = dt =>
-  dt.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  dt.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
 
 const fmtTime = dt =>
   dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -89,6 +92,7 @@ export default function ReportPage() {
   const [settings, setSettings]   = useState(null)
   const [loading, setLoading]     = useState(true)
   const [dateFilter, setDateFilter] = useState(null) // [dayjs, dayjs] | null
+  const [units, setUnits]         = useUnits()
 
   useEffect(() => {
     Promise.all([
@@ -235,7 +239,7 @@ export default function ReportPage() {
 
       {/* Controls bar */}
       <div className={styles.controls}>
-        <DownloadPdfButton dateFilter={dateFilter} />
+        <DownloadPdfButton dateFilter={dateFilter} units={units} />
         <Tooltip title="Opens the browser print dialog. Uncheck 'Headers and footers' in More settings for a cleaner output.">
           <Button
             icon={<PrinterOutlined />}
@@ -256,6 +260,7 @@ export default function ReportPage() {
           placeholder={['Start date', 'End date']}
           style={{ width: 240 }}
         />
+        <UnitsToggle units={units} onChange={setUnits} size="middle" />
         {dateFilter && (
           <Text type="secondary" style={{ fontSize: 12 }}>
             {events.length} of {allEvents.length} episode{allEvents.length !== 1 ? 's' : ''}
@@ -387,7 +392,6 @@ export default function ReportPage() {
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Time</th>
                   <th>Activity</th>
                   <th>Baseline HR</th>
                   <th>Peak HR</th>
@@ -404,11 +408,15 @@ export default function ReportPage() {
                   const label = eventLabels[e.id]
                   return (
                     <tr key={e.id} className={isLong ? styles.orangeRow : ''}>
-                      <td style={{ whiteSpace: 'nowrap' }}>{dt ? fmtDate(dt) : '—'}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>{dt ? fmtTime(dt) : '—'}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {dt ? <>{fmtDate(dt)}<div style={{ color: '#666' }}>{fmtTime(dt)}</div></> : '—'}
+                      </td>
                       <td>
                         {e.ride_name || e.filename || '—'}
                         {label && <span style={{ color: '#666', marginLeft: 4 }}>{label}</span>}
+                        {fmtRideStats(e, units) && (
+                          <div style={{ color: '#666', fontSize: '0.85em' }}>{fmtRideStats(e, units)}</div>
+                        )}
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>{e.baseline_before} bpm</td>
                       <td style={{ whiteSpace: 'nowrap' }} className={e.peak_hr >= 190 ? styles.boldHr : ''}>

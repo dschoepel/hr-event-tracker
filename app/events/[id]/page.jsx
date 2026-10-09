@@ -6,6 +6,8 @@ import { LinkOutlined, EyeOutlined } from '@ant-design/icons'
 import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ResponsiveContainer } from 'recharts'
 import Link from 'next/link'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
+import UnitsToggle, { useUnits } from '@/components/UnitsToggle'
+import { fmtDistance, fmtElevation, fmtAvgHr } from '@/lib/units'
 
 const { Title } = Typography
 
@@ -41,6 +43,7 @@ export default function EventDetailPage({ params }) {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [role, setRole] = useState(undefined) // undefined = not yet known
+  const [units, setUnits] = useUnits()
   const [form] = Form.useForm()
 
   useEffect(() => {
@@ -110,6 +113,18 @@ export default function EventDetailPage({ params }) {
         <Descriptions.Item label="Drop">{event.drop_magnitude} bpm</Descriptions.Item>
         <Descriptions.Item label="HR After Drop">{event.hr_after_drop} bpm</Descriptions.Item>
         <Descriptions.Item label="Duration">{(() => { const s = Math.round(event.duration_seconds); return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s` })()}</Descriptions.Item>
+      </Descriptions>
+      <Descriptions
+        bordered
+        size="small"
+        title="Ride"
+        extra={<UnitsToggle units={units} onChange={setUnits} />}
+        style={{ marginBottom: 24 }}
+        column={{ xs: 1, sm: 3 }}
+      >
+        <Descriptions.Item label="Distance">{fmtDistance(event.distance_m, units)}</Descriptions.Item>
+        <Descriptions.Item label="Elevation Gain">{fmtElevation(event.elevation_gain_m, units)}</Descriptions.Item>
+        <Descriptions.Item label="Avg HR">{fmtAvgHr(event.avg_hr)}</Descriptions.Item>
       </Descriptions>
 
       {hrStream.length > 0 && (

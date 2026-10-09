@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getDb, getSettings } from '@/lib/db'
 import { getSession, requireOwner } from '@/lib/auth'
+import { UNITS } from '@/lib/units'
 
 export async function GET(request) {
   // Read-only, allowed for viewers too — the Report page needs it.
@@ -36,6 +37,12 @@ export async function PUT(request) {
   // Report settings (string fields, no numeric validation needed)
   for (const field of ['activityType', 'hrDevice', 'appUrl']) {
     if (field in body) upsert.run(`report.${field}`, String(body[field]))
+  }
+
+  if ('displayUnits' in body) {
+    if (!UNITS.includes(body.displayUnits))
+      return NextResponse.json({ error: 'Invalid value for displayUnits' }, { status: 400 })
+    upsert.run('display.units', body.displayUnits)
   }
 
   return NextResponse.json(getSettings())
