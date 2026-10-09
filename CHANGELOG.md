@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Removed `deploy/docker-compose.yml` and `deploy/nginx/` — the production compose file and nginx config are maintained in the separate `schoepels-services` repo (the copies here were stale); CLAUDE.md and ARCHITECTURE.md point there
+
 ## [1.3.0] - 2026-10-09
 
 ### Added

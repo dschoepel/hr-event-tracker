@@ -87,9 +87,7 @@ lib/
 scripts/
   hash-password.js            CLI: generates OWNER_PASSWORD_HASH from a plaintext password
 
-deploy/
-  docker-compose.yml          Production compose — deployed as a Dockhand stack (see "Deployment" below)
-  nginx/                      SWAG/nginx config
+deploy/                       (production compose + nginx config live in the schoepels-services repo — see "Deployment" below)
   swag/                       Maintenance page shown by the reverse proxy during upgrades
 
 .github/workflows/            GitHub Actions CI (build + push GHCR image)
@@ -273,6 +271,16 @@ pulling the image, recreating the container, and polling its healthcheck.
 There is no SSH deploy script or `/deploy` skill; those were retired once
 Dockhand could do this work itself.
 
+The production compose file lives in the separate **`schoepels-services`**
+repo at `jupiter-r640/hr-event-tracker/docker-compose.yml`, not here; the
+nginx reverse-proxy config is there too, at
+`earth/nginx/sites-available/hr-event-tracker.schoepels.com.conf` (nginx on
+`earth` proxies to the container on `jupiter-r640`, host port `49300`).
+The compose file pulls the `latest` image tag, so a normal release needs no
+compose change — only update it when the deployment shape changes (a new env
+var, volume, or service). Schema changes need no manual step either:
+`lib/db.js` applies `ALTER TABLE` migrations when the container starts.
+
 1. `/release` bumps `VERSION.md`, updates `CHANGELOG.md`/`RELEASE.md`, tags,
    and pushes — `git push --tags` triggers GitHub Actions, which builds the
    image and pushes it to GHCR.
@@ -291,8 +299,8 @@ never baked into the Docker image or committed to the repo — the image is
 built by GitHub Actions from the public repo, so anything in the repo or the
 image is effectively public. They're set instead in Dockhand's "Environment
 Variables" panel for this stack (mask `SESSION_SECRET` and
-`OWNER_PASSWORD_HASH` there), and `deploy/docker-compose.yml`'s `environment:`
-block references them as `${VAR_NAME}` so Dockhand interpolates real values
+`OWNER_PASSWORD_HASH` there), and the stack's compose file (in `schoepels-services`)
+`environment:` block references them as `${VAR_NAME}` so Dockhand interpolates real values
 into the compose file before it creates the container. **Every var the `app`
 service needs must have a corresponding `${VAR_NAME}` line in that
 `environment:` block** — a value existing in Dockhand's panel but not

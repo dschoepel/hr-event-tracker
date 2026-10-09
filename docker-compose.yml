@@ -1,7 +1,7 @@
 # Development: starts supporting services only — app runs with `npm run dev`
 # Tier 1: nothing to start (SQLite is a local file)
 # Tier 2: `docker-compose up` starts postgres
-# Tier 3: `docker-compose up` starts the full Supabase stack (see deploy/docker-compose.yml)
+# Production compose is not in this repo — it lives in the schoepels-services repo
 services:
   # Tier 2: PostgreSQL for local development
   db:
