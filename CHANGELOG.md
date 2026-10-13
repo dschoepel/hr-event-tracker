@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-10-12
+
+### Changed
+- PDF episode table: the "(2nd event)" label now leads the ride-stats line instead of wrapping onto its own line after long ride names, and the "Drop → HR After" cell may wrap at the arrow — frees enough width for the Activity column that most rows fit the ride name on one or two lines
+
 ## [1.3.2] - 2026-10-12
 
 ### Changed

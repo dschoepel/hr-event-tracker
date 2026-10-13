@@ -1,3 +1,11 @@
+## [1.3.3] - 2026-10-12
+
+### Improvements
+
+- **An even tighter PDF report.** Labels like "2nd event" now sit on the same small line as the ride's distance, climbing and heart rate instead of taking up a line of their own, and ride names get more room. Most episodes in the PDF now take just two or three short lines.
+
+---
+
 ## [1.3.2] - 2026-10-12
 
 ### Improvements
