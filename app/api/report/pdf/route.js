@@ -1,4 +1,6 @@
-import { existsSync } from 'fs'
+import { existsSync, mkdtempSync, rmSync } from 'fs'
+import { tmpdir } from 'os'
+import { join } from 'path'
 import puppeteer from 'puppeteer-core'
 import { getDb, getSettings } from '@/lib/db'
 import { buildReportHtml } from '@/lib/reportTemplate'
@@ -65,16 +67,35 @@ export async function GET(request) {
   const units = UNITS.includes(unitsParam) ? unitsParam : settings.display_units
   const html = buildReportHtml(events, settings, { units })
 
-  const browser = await puppeteer.launch({
-    executablePath: chromePath,
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-    ],
-  })
+  // The production container is read-only except /tmp, and Chromium (and its
+  // crashpad handler) need a writable home/profile dir or they fail to launch
+  // ("chrome_crashpad_handler: --database is required"). Give each render its
+  // own throwaway home under /tmp and turn the crash reporter off.
+  const chromeHome = mkdtempSync(join(tmpdir(), 'hret-chromium-'))
+  let browser
+  try {
+    browser = await puppeteer.launch({
+      executablePath: chromePath,
+      headless: true,
+      userDataDir: join(chromeHome, 'profile'),
+      env: { ...process.env, HOME: chromeHome, XDG_CONFIG_HOME: chromeHome, XDG_CACHE_HOME: chromeHome },
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-crash-reporter',
+        '--no-crashpad',
+      ],
+    })
+  } catch (err) {
+    console.error(err)
+    rmSync(chromeHome, { recursive: true, force: true })
+    return new Response(
+      JSON.stringify({ error: `Could not start the PDF renderer: ${err.message.split('\n')[0]}` }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
 
   try {
     const page = await browser.newPage()
@@ -101,7 +122,14 @@ export async function GET(request) {
         'Content-Disposition': `attachment; filename="HR-Episode-Log-${suffix}.pdf"`,
       },
     })
+  } catch (err) {
+    console.error(err)
+    return new Response(
+      JSON.stringify({ error: `PDF generation failed: ${err.message.split('\n')[0]}` }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
   } finally {
     await browser.close()
+    rmSync(chromeHome, { recursive: true, force: true })
   }
 }

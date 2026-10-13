@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- PDF download failed in production with a 500 — the container is read-only except `/tmp`, so Chromium's crash handler couldn't start (`chrome_crashpad_handler: --database is required`). Each render now gets a throwaway Chromium home under `/tmp` with the crash reporter disabled, and launch/render errors are returned to the page instead of a bare 500
+
 ### Changed
 - Removed `deploy/docker-compose.yml` and `deploy/nginx/` — the production compose file and nginx config are maintained in the separate `schoepels-services` repo (the copies here were stale); CLAUDE.md and ARCHITECTURE.md point there
 
