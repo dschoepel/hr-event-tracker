@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-12
+
 ### Fixed
 - PDF download failed in production with a 500 — the container is read-only except `/tmp`, so Chromium's crash handler couldn't start (`chrome_crashpad_handler: --database is required`). Each render now gets a throwaway Chromium home under `/tmp` with the crash reporter disabled, and launch/render errors are returned to the page instead of a bare 500
 

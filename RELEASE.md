@@ -1,3 +1,15 @@
+## [1.3.1] - 2026-10-12
+
+### Bug Fixes
+
+- **Downloading the report as a PDF works again.** Clicking "Download PDF" on the report page was failing with an error on the live site. It now produces the PDF as expected. If something does go wrong, the page now shows a clear error message instead of a generic failure.
+
+### Maintenance
+
+- No other user-visible changes. Deployment files now live in a separate server-configuration repository, and the copies in this project were removed.
+
+---
+
 ## [1.3.0] - 2026-10-09
 
 ### What's New
