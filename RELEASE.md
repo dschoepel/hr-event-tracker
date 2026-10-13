@@ -1,3 +1,11 @@
+## [1.3.2] - 2026-10-12
+
+### Improvements
+
+- **A more compact PDF report.** In the downloaded PDF, each episode row now takes about half the height it did before. The ride name has more room and the distance, climbing and heart-rate line fits on one line, so the episode log uses fewer pages and is easier to scan.
+
+---
+
 ## [1.3.1] - 2026-10-12
 
 ### Bug Fixes

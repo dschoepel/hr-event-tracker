@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-10-12
+
 ### Changed
 - PDF episode table is more compact — matches the web table's smaller font, tighter cell padding, and reserves ~a third of the width for the Activity column, so rows no longer stretch to 6–8 lines on A4
 
