@@ -1,3 +1,11 @@
+## [1.3.4] - 2026-10-12
+
+### Improvements
+
+- **Every episode in the PDF now fits on two lines.** Long ride names are shortened to a single line ending in "…", while the line underneath (distance, climbing, average heart rate, and which event of the ride it was) stays in full. The report is shorter and the numbers that matter are easier to scan. The web report still shows full ride names.
+
+---
+
 ## [1.3.3] - 2026-10-12
 
 ### Improvements

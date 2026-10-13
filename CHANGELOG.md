@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.4] - 2026-10-12
+
+### Changed
+- PDF episode table clips the ride name to one line with an ellipsis (e.g. "Zwift - Group Ride: 3R Steady State Endura…") so every row is two lines — the stats line (event label, distance, elevation, avg HR) carries the information that matters for the report
+
 ## [1.3.3] - 2026-10-12
 
 ### Changed
