@@ -7,6 +7,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- "Episodes by Month" now starts on a new page in both the downloadable PDF and the browser printout, so the monthly table no longer splits across the summary page
+- Printing the report page from the browser now uses the same compact episode rows as the downloadable PDF (smaller type, ride name clipped to one line, event label on the stats line, "Drop → HR After" wraps at the arrow). On screen, full ride names are still shown; the event label now leads the stats line there too
+
+### Fixed
+- Printing the report page no longer includes the Print button's tooltip ("Opens the browser print dialog…") overlaid on the first page — tooltips, popovers and toast messages are hidden in print styles
+
 ## [1.3.4] - 2026-10-12
 
 ### Changed

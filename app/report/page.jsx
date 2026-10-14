@@ -226,6 +226,8 @@ export default function ReportPage() {
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           header, .ant-layout-header { display: none !important; }
+          /* The Print button's tooltip is still open when the dialog captures the page */
+          .ant-tooltip, .ant-popover, .ant-message { display: none !important; }
           .ant-layout { background: #fff !important; }
           .ant-layout-content { padding: 0 !important; }
           @page { margin: 1.5cm; size: A4; }
@@ -342,7 +344,7 @@ export default function ReportPage() {
         {/* ── Episodes by Month ── */}
         {monthsData.length > 0 && (
           <>
-            <h2>Episodes by Month</h2>
+            <h2 className={styles.monthSection}>Episodes by Month</h2>
             <p>{narrative}</p>
             <table className={styles.monthTable}>
               <thead>
@@ -405,18 +407,16 @@ export default function ReportPage() {
                 {sortedEvents.map(e => {
                   const dt = eventTime(e)
                   const isLong = e.duration_seconds >= 120
-                  const label = eventLabels[e.id]
+                  // Event label ("2nd event") leads the stats line, matching the PDF
+                  const subLine = [eventLabels[e.id]?.replace(/[()]/g, ''), fmtRideStats(e, units)].filter(Boolean).join(' · ')
                   return (
                     <tr key={e.id} className={isLong ? styles.orangeRow : ''}>
                       <td style={{ whiteSpace: 'nowrap' }}>
                         {dt ? <>{fmtDate(dt)}<div style={{ color: '#666' }}>{fmtTime(dt)}</div></> : '—'}
                       </td>
                       <td>
-                        {e.ride_name || e.filename || '—'}
-                        {label && <span style={{ color: '#666', marginLeft: 4 }}>{label}</span>}
-                        {fmtRideStats(e, units) && (
-                          <div style={{ color: '#666', fontSize: '0.85em' }}>{fmtRideStats(e, units)}</div>
-                        )}
+                        <div className={styles.rideName}>{e.ride_name || e.filename || '—'}</div>
+                        {subLine && <div className={styles.sub}>{subLine}</div>}
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>{e.baseline_before} bpm</td>
                       <td style={{ whiteSpace: 'nowrap' }} className={e.peak_hr >= 190 ? styles.boldHr : ''}>
@@ -424,8 +424,9 @@ export default function ReportPage() {
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>+{e.jump_magnitude} bpm</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{fmtDur(e.duration_seconds)}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        &minus;{e.drop_magnitude} bpm &rarr; {e.hr_after_drop} bpm
+                      <td>
+                        <span style={{ whiteSpace: 'nowrap' }}>&minus;{e.drop_magnitude} bpm &rarr;</span>{' '}
+                        <span style={{ whiteSpace: 'nowrap' }}>{e.hr_after_drop} bpm</span>
                       </td>
                       <td>
                         {e.frontier_session_ref ? (

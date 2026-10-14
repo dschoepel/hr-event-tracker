@@ -189,9 +189,39 @@
   color: #999;
 }
 
+/* Stats line under the ride name (event label · distance · elevation · avg HR) */
+.sub {
+  color: #666;
+  font-size: 0.85em;
+}
+
 @media print {
   .controls {
     display: none;
+  }
+
+  /* Compact episode rows, matching the downloadable PDF (lib/reportTemplate.js):
+     smaller type, tighter padding, ride name clipped to one line */
+  .episodeTable {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .episodeTable th,
+  .episodeTable td {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .episodeTable th:nth-child(2) {
+    width: 34%;
+  }
+  .rideName {
+    max-width: 230px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sub {
+    font-size: 9.5px;
   }
   .page {
     padding: 0;
@@ -201,7 +231,8 @@
     grid-template-columns: repeat(4, 1fr);
   }
 
-  /* Force episode log onto its own page */
+  /* Start "Episodes by Month" and the episode log each on a new page */
+  .monthSection,
   .episodeSection {
     break-before: page;
     page-break-before: always;
