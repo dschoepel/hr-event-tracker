@@ -1,3 +1,16 @@
+## [1.3.5] - 2026-10-14
+
+### Improvements
+
+- **Printing the report now looks like the PDF.** When you use the Print button, episodes print in the same compact two-line rows as the downloaded PDF. On screen you still see full ride names.
+- **"Episodes by Month" starts on its own page** in both the PDF and the printout, so the monthly table no longer splits across the summary page.
+
+### Bug Fixes
+
+- **No more stray tooltip in printouts.** The "Opens the browser print dialog…" hint no longer gets printed on top of the first page.
+
+---
+
 ## [1.3.4] - 2026-10-12
 
 ### Improvements
