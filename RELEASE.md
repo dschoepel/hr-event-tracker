@@ -1,3 +1,12 @@
+## [1.3.7] - 2026-10-14
+
+### Improvements
+
+- **More accurate app description.** When you share or bookmark a link to the app, the preview now says "Detect, review and share unusual heart-rate episodes from cycling GPX files." It no longer mentions tachycardia, which implied a diagnosis.
+- **Updated documentation.** The project README now explains what the app does: episode detection, review, the doctor report and share links. It also has up-to-date setup instructions.
+
+---
+
 ## [1.3.6] - 2026-10-14
 
 ### Improvements
