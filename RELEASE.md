@@ -1,3 +1,16 @@
+## [1.3.6] - 2026-10-14
+
+### Improvements
+
+- **The app now works properly on phones.** Pages no longer run off the right edge of a small screen, so you don't have to scroll sideways.
+  - **Report:** each episode in the log shows as its own card, with the date and ride at the top and the heart-rate numbers in a neat two-column grid underneath. Long episodes are still shaded orange. The monthly frequency bars shrink to fit, and the summary boxes sit two to a row.
+  - **Event History:** months, rides and episodes are shown as simple stacked cards instead of cramped nested tables, so ride names and episode summaries are easy to read.
+  - **Settings:** GPX Files and Share Access show one card per ride or link, and the tabs use short names (Detection, GPX, Report, Display, Share) so they all fit across the screen.
+
+Desktop, printing and the downloadable PDF look exactly as before.
+
+---
+
 ## [1.3.5] - 2026-10-14
 
 ### Improvements
