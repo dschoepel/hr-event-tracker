@@ -3,34 +3,34 @@
 This file provides guidance to Claude Code when working in this repository.
 
 ## Quick Reference
-- **Tier**: <!-- 1 (SQLite) | 2 (PostgreSQL + Auth.js) | 3 (Supabase) -->
-- **UI**: <!-- Ant Design v6 | Tailwind CSS -->
+- **Stack**: Next.js 15 (App Router) + React 19, Ant Design v6, SQLite via Node's built-in `node:sqlite` (Tier 1 of the app-template)
 - **Version**: see `VERSION.md`
 - **Dev**: `npm run dev` (port 3000)
 
 ## Commands
 ```bash
-npm run dev           # Start development server
-npm run build         # Production build
-npm run lint          # ESLint
-
-# Tier 2 only:
-npm run db:generate   # Generate Drizzle migration from schema
-npm run db:migrate    # Apply pending migrations
-npm run db:studio     # Drizzle Studio (schema browser)
-
-# Start supporting services (Tier 2/3):
-docker-compose up db -d     # Tier 2: postgres only
-docker-compose up -d        # Tier 3: full Supabase stack
+npm run dev                                   # Start development server
+npm run build                                 # Production build
+node scripts/hash-password.js '<password>'    # Generate OWNER_PASSWORD_HASH
 ```
+- **Don't run `npm run build` while `npm run dev` is running** — both use `.next`, and the dev server then serves stale/mixed code until restarted. Check `curl localhost:3000` first; if it's up, syntax-check instead (e.g. Next's SWC `transform` from `next/dist/build/swc`) or ask the user to restart dev after
+- `npm run lint` is not usable — ESLint was never configured (`next lint` stops at an interactive setup prompt)
+- The `db:*` scripts (Drizzle) and the postgres service in `docker-compose.yml` are unused app-template leftovers
 
 ## Key Files
-- `lib/db.js` — SQLite singleton (Tier 1). `lastInsertRowid` returns BigInt — use `Number()` before JSON
-- `lib/drizzle/` — Drizzle client + schema (Tier 2)
-- `lib/supabase.js` — Supabase singleton clients (Tier 3)
-- `lib/auth.js` — Auth.js v5 full config (Tier 2/3)
-- `lib/auth.config.js` — Edge-compatible config used by middleware
+- `lib/db.js` — SQLite singleton (`DB_PATH`, GPX files under `GPX_PATH`); applies `ALTER TABLE` migrations on startup. `lastInsertRowid` may be a BigInt — use `Number()` before JSON
+- `lib/auth.js` — custom HMAC-signed cookie auth (not Auth.js). Two roles: **owner** (password checked against `OWNER_PASSWORD_HASH`, signed with `SESSION_SECRET`) and **viewer** (doctor, read-only, via share link; revocation checked against `share_links` on every request). API routes are the real security boundary
+- `middleware.js` — edge-safe cookie-*presence* gate only; viewers may open `/report` and `/events/[id]`
+- `app/share/[token]/route.js` — redeems a share link (Settings → Share Access), sets the viewer cookie, redirects to `/report`
+- `lib/publicUrl.js` — builds redirect URLs from the public host behind the nginx proxy (see `ARCHITECTURE.md` → Deployment)
+- `lib/gpxParser.js` — GPX parsing + HR episode detection
+- `app/report/page.jsx` — on-screen/printable report; `lib/reportTemplate.js` + `app/api/report/pdf/route.js` — downloadable PDF (HTML template rendered by puppeteer-core; needs Chromium, `PUPPETEER_EXECUTABLE_PATH`). Keep the two report renderings in step
 - `next.config.mjs` — reads `VERSION.md` → `NEXT_PUBLIC_APP_VERSION` at build time
+
+## Mobile layout
+- Breakpoint is **768px** (AntD `md`). Below it, wide tables render as stacked cards instead: `Grid.useBreakpoint().md === false` in `app/events/page.jsx` and `app/settings/page.jsx`; CSS-only cards (`data-label` + `::before`) for the report episode log in `report.module.css`
+- Scope small-screen CSS to `@media screen and (max-width: 768px)` — an A4 print page is ~680px wide and would otherwise pick up the phone layout
+- App gutters come from `.app-main` in `app/globals.css`
 
 ## Versioning
 - `VERSION.md` contains the current version (single line, e.g. `v1.2.0`)
@@ -40,7 +40,7 @@ docker-compose up -d        # Tier 3: full Supabase stack
 ## Documentation Files to Maintain
 - `CHANGELOG.md` — update `[Unreleased]` section as features are added
 - `ARCHITECTURE.md` — update schema section when DB tables change
-- `RELEASE.md` — overwritten by `/release` skill with current release notes
+- `RELEASE.md` — user-facing release notes; `/release` prepends each new release
 
 ## Deployment
 - Push tag → GitHub Actions builds GHCR image → redeploy the `hr-event-tracker` stack in Dockhand
