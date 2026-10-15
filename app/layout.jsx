@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
           <AntDThemeProvider>
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
               <ResponsiveNav />
-              <main style={{ flex: 1, padding: '24px 32px' }}>
+              <main className="app-main">
                 {children}
               </main>
               <AppFooter />

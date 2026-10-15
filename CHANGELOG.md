@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Pages fit the screen on phones, no sideways scrolling. Report: each episode in the log shows as a card (date and activity on top, measurements in a labelled two-column grid), "Episodes by Month" bars scale to the column width, the controls bar wraps, and summary stats show two per row. Event History: months, rides and events show as stacked cards instead of nested tables; header buttons wrap under the title. Settings: GPX Files and Share Access show one card per ride / link instead of tables (multi-upload rides list each upload inside the card), and the tab bar uses short names (Detection · GPX · Report · Display · Share) so every tab fits without scrolling. Page gutters are tighter on small screens. Printing and the PDF are unchanged
+
 ## [1.3.5] - 2026-10-14
 
 ### Changed

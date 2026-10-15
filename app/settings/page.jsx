@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import {
   App, Card, Tabs, Form, InputNumber, Input, Button, Space, Table, Badge, Tag,
-  Typography, Tooltip, Modal, Select,
+  Typography, Tooltip, Modal, Select, Grid,
 } from 'antd'
 import { ReloadOutlined, DeleteOutlined, CopyOutlined, CalculatorOutlined } from '@ant-design/icons'
 import PageBreadcrumb from '@/components/PageBreadcrumb'
@@ -12,6 +12,16 @@ import { fmtDistance, fmtElevation, fmtAvgHr } from '@/lib/units'
 const { Title, Text } = Typography
 
 const DEFAULTS = { jumpThreshold: 60, minBaselineHr: 50, dropRequired: 30 }
+
+// Below md (768px) the tables don't fit — tabs render stacked cards instead
+const useIsMobile = () => Grid.useBreakpoint().md === false
+
+const mobileCardStyle = {
+  border: '1px solid #f0f0f0',
+  borderRadius: 6,
+  padding: '10px 12px',
+  background: '#fff',
+}
 
 function DetectionTab() {
   const { message } = App.useApp()
@@ -95,6 +105,7 @@ function GpxFilesTab() {
   const [rerunningId, setRerunningId] = useState(null)
   const [backfilling, setBackfilling] = useState(false)
   const [units, setUnits] = useUnits()
+  const isMobile = useIsMobile()
 
   const load = () => {
     setLoading(true)
@@ -263,6 +274,50 @@ function GpxFilesTab() {
     },
   ]
 
+  // Phone layout: one card per ride; multi-upload rides list each upload inside
+  const statLine = f => [
+    fmtDistance(f?.distance_m, units),
+    fmtElevation(f?.elevation_gain_m, units),
+    `avg ${fmtAvgHr(f?.avg_hr)}`,
+  ].join(' · ')
+
+  const mobileUpload = f => (
+    <div key={f.id} style={{ borderTop: '1px solid #f0f0f0', paddingTop: 8, marginTop: 8 }}>
+      <Text type="secondary" style={{ fontSize: 12, wordBreak: 'break-all' }}>{f.filename}</Text>
+      <div style={{ fontSize: 12 }}>Uploaded {new Date(f.uploaded_at + 'Z').toLocaleDateString()} · {statLine(f)}</div>
+      <Space size={8} style={{ marginTop: 4 }}>
+        <Badge count={f.event_count} color={f.event_count > 0 ? '#d32f2f' : '#bbb'} showZero />
+        <Tag color={f.file_exists ? 'success' : 'default'}>{f.file_exists ? 'Saved' : 'Missing'}</Tag>
+        {actionButtons(f.id, f.ride_name || f.filename)}
+      </Space>
+    </div>
+  )
+
+  const mobileRide = r => {
+    const single = r.uploads.length === 1
+    const statsFile = r.uploads.find(f => f.distance_m != null) ?? r.uploads[0]
+    return (
+      <div key={r.key} style={mobileCardStyle}>
+        <Text strong>{r.label}</Text>
+        <div style={{ fontSize: 12, color: '#666' }}>
+          {[r.dateLabel, single ? null : `${r.uploads.length} uploads`].filter(Boolean).join(' · ')}
+        </div>
+        <div style={{ fontSize: 12, marginTop: 2 }}>{statLine(statsFile)}</div>
+        <Space size={8} style={{ marginTop: 6 }}>
+          <Badge count={r.totalEvents} color={r.totalEvents > 0 ? '#d32f2f' : '#bbb'} showZero />
+          <Text type="secondary" style={{ fontSize: 12 }}>episodes</Text>
+          {single && (
+            <>
+              <Tag color={r.anyFileSaved ? 'success' : 'default'}>{r.anyFileSaved ? 'Saved' : 'Missing'}</Tag>
+              {actionButtons(r.uploads[0].id, r.label)}
+            </>
+          )}
+        </Space>
+        {!single && r.uploads.map(mobileUpload)}
+      </div>
+    )
+  }
+
   const parentColumns = [
     {
       title: 'Ride',
@@ -320,7 +375,7 @@ function GpxFilesTab() {
     <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
       {orphans.length > 0 && (
         <Card size="small" style={{ borderColor: '#faad14', background: '#fffbe6' }}>
-          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Space style={{ width: '100%', justifyContent: 'space-between' }} wrap>
             <Text>
               <strong>{orphans.length}</strong> record{orphans.length > 1 ? 's have' : ' has'} no events and no file on disk — they cannot be reprocessed.
             </Text>
@@ -336,7 +391,13 @@ function GpxFilesTab() {
         </Tooltip>
         <UnitsToggle units={units} onChange={setUnits} />
       </Space>
-      <Table
+      {isMobile ? (
+        <Space orientation="vertical" size={8} style={{ width: '100%' }}>
+          {loading ? <Text type="secondary">Loading…</Text>
+            : grouped.length === 0 ? <Text type="secondary">No GPX files uploaded yet.</Text>
+            : grouped.map(mobileRide)}
+        </Space>
+      ) : <Table
         rowKey="key"
         columns={parentColumns}
         dataSource={grouped}
@@ -356,7 +417,7 @@ function GpxFilesTab() {
             />
           ),
         }}
-      />
+      />}
     </Space>
   )
 }
@@ -486,6 +547,7 @@ function ShareAccessTab() {
   const [modalOpen, setModalOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [form] = Form.useForm()
+  const isMobile = useIsMobile()
 
   const load = () => {
     setLoading(true)
@@ -550,6 +612,38 @@ function ShareAccessTab() {
 
   const isLive = (link) => !link.revoked_at && new Date(link.expires_at) >= new Date()
 
+  const linkActions = r => (
+    <Space>
+      {isLive(r) && (
+        <Tooltip title="Copy share link">
+          <Button size="small" icon={<CopyOutlined />} onClick={() => copyLink(r.token)} />
+        </Tooltip>
+      )}
+      {!r.revoked_at && (
+        <Button size="small" danger onClick={() => revoke(r.id)}>Revoke</Button>
+      )}
+    </Space>
+  )
+
+  // Phone layout: one card per link
+  const mobileLink = r => (
+    <div key={r.id} style={mobileCardStyle}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {r.label ? <Text strong>{r.label}</Text> : <Text type="secondary">(no label)</Text>}
+        </div>
+        {statusTag(r)}
+      </div>
+      <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+        Created {new Date(r.created_at + 'Z').toLocaleDateString()} · Expires {new Date(r.expires_at).toLocaleDateString()}
+      </div>
+      <div style={{ fontSize: 12, color: '#666' }}>
+        Last used {r.last_used_at ? new Date(r.last_used_at + 'Z').toLocaleString() : 'never'}
+      </div>
+      <div style={{ marginTop: 8 }}>{linkActions(r)}</div>
+    </div>
+  )
+
   const columns = [
     {
       title: 'Label',
@@ -584,18 +678,7 @@ function ShareAccessTab() {
       title: 'Actions',
       key: 'actions',
       width: 170,
-      render: (_, r) => (
-        <Space>
-          {isLive(r) && (
-            <Tooltip title="Copy share link">
-              <Button size="small" icon={<CopyOutlined />} onClick={() => copyLink(r.token)} />
-            </Tooltip>
-          )}
-          {!r.revoked_at && (
-            <Button size="small" danger onClick={() => revoke(r.id)}>Revoke</Button>
-          )}
-        </Space>
-      ),
+      render: (_, r) => linkActions(r),
     },
   ]
 
@@ -611,7 +694,15 @@ function ShareAccessTab() {
       <Button type="primary" onClick={() => setModalOpen(true)} style={{ alignSelf: 'flex-start' }}>
         New Share Link
       </Button>
-      <Table rowKey="id" columns={columns} dataSource={links} loading={loading} pagination={false} size="small" />
+      {isMobile ? (
+        <Space orientation="vertical" size={8} style={{ width: '100%' }}>
+          {loading ? <Text type="secondary">Loading…</Text>
+            : links.length === 0 ? <Text type="secondary">No share links yet.</Text>
+            : links.map(mobileLink)}
+        </Space>
+      ) : (
+        <Table rowKey="id" columns={columns} dataSource={links} loading={loading} pagination={false} size="small" />
+      )}
       <Modal
         title="New Share Link"
         open={modalOpen}
@@ -640,6 +731,9 @@ function ShareAccessTab() {
 }
 
 export default function SettingsPage() {
+  // Full tab names don't fit across a phone — use short ones and a tighter gap
+  const isMobile = useIsMobile()
+  const label = (full, short) => isMobile ? short : full
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
       <PageBreadcrumb items={[
@@ -649,12 +743,13 @@ export default function SettingsPage() {
       <Title level={3} style={{ margin: 0 }}>Settings</Title>
       <Tabs
         defaultActiveKey="detection"
+        tabBarGutter={isMobile ? 14 : undefined}
         items={[
-          { key: 'detection', label: 'Detection Thresholds', children: <DetectionTab /> },
-          { key: 'gpx',       label: 'GPX Files',            children: <GpxFilesTab /> },
-          { key: 'report',    label: 'Report',               children: <ReportTab /> },
-          { key: 'display',   label: 'Display',              children: <DisplayTab /> },
-          { key: 'share',     label: 'Share Access',         children: <ShareAccessTab /> },
+          { key: 'detection', label: label('Detection Thresholds', 'Detection'), children: <DetectionTab /> },
+          { key: 'gpx',       label: label('GPX Files', 'GPX'),                  children: <GpxFilesTab /> },
+          { key: 'report',    label: 'Report',                                   children: <ReportTab /> },
+          { key: 'display',   label: 'Display',                                  children: <DisplayTab /> },
+          { key: 'share',     label: label('Share Access', 'Share'),             children: <ShareAccessTab /> },
         ]}
       />
     </Space>

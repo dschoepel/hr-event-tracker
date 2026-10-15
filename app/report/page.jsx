@@ -361,10 +361,12 @@ export default function ReportPage() {
                     <td>{m.count > 0 ? m.count : <span style={{ color: '#aaa' }}>0</span>}</td>
                     <td>
                       {m.count > 0 && (
-                        <span
-                          className={styles.freqBar}
-                          style={{ width: `${Math.max(4, Math.round((m.count / maxMonthCount) * 220))}px` }}
-                        />
+                        <span className={styles.freqTrack}>
+                          <span
+                            className={styles.freqBar}
+                            style={{ width: `${Math.max(2, Math.round((m.count / maxMonthCount) * 100))}%` }}
+                          />
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -390,6 +392,7 @@ export default function ReportPage() {
           {sortedEvents.length === 0 ? (
             <p><em>No confirmed episodes to display.</em></p>
           ) : (
+            <div className={styles.tableScroll}>
             <table className={styles.episodeTable}>
               <thead>
                 <tr>
@@ -418,17 +421,17 @@ export default function ReportPage() {
                         <div className={styles.rideName}>{e.ride_name || e.filename || '—'}</div>
                         {subLine && <div className={styles.sub}>{subLine}</div>}
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>{e.baseline_before} bpm</td>
-                      <td style={{ whiteSpace: 'nowrap' }} className={e.peak_hr >= 190 ? styles.boldHr : ''}>
+                      <td data-label="Baseline HR" style={{ whiteSpace: 'nowrap' }}>{e.baseline_before} bpm</td>
+                      <td data-label="Peak HR" style={{ whiteSpace: 'nowrap' }} className={e.peak_hr >= 190 ? styles.boldHr : ''}>
                         {e.peak_hr} bpm
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>+{e.jump_magnitude} bpm</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>{fmtDur(e.duration_seconds)}</td>
-                      <td>
+                      <td data-label="Jump" style={{ whiteSpace: 'nowrap' }}>+{e.jump_magnitude} bpm</td>
+                      <td data-label="Duration" style={{ whiteSpace: 'nowrap' }}>{fmtDur(e.duration_seconds)}</td>
+                      <td data-label="Drop → HR After">
                         <span style={{ whiteSpace: 'nowrap' }}>&minus;{e.drop_magnitude} bpm &rarr;</span>{' '}
                         <span style={{ whiteSpace: 'nowrap' }}>{e.hr_after_drop} bpm</span>
                       </td>
-                      <td>
+                      <td data-label={`${settings.report_hrDevice} ECG`}>
                         {e.frontier_session_ref ? (
                           <Link href={`/events/${e.id}`}>View ECG Recording</Link>
                         ) : '—'}
@@ -438,6 +441,7 @@ export default function ReportPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 

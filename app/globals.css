@@ -35,4 +35,18 @@ body {
   .mobile-menu-btn { display: flex !important; }
 }
 
+.app-main {
+  flex: 1;
+  padding: 24px 32px;
+}
+
+/* Small screens: tighter gutters; wide AntD tables scroll inside their own
+   box instead of widening the page; card header actions wrap under the title */
+@media screen and (max-width: 768px) {
+  .app-main { padding: 16px 12px; }
+  .ant-table-wrapper { overflow-x: auto; }
+  .ant-card-head-wrapper { flex-wrap: wrap; gap: 8px; padding-block: 8px; }
+  .ant-card-extra { margin-inline-start: 0 !important; }
+}
+
 /* Tailwind base overrides (Tailwind variant only — AntD uses ConfigProvider) */

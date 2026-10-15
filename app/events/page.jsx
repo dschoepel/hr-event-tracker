@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload, Dropdown, Statistic, Collapse } from 'antd'
+import { Table, Tag, Card, App, Typography, Popconfirm, Button, Space, Row, Col, Badge, Upload, Dropdown, Statistic, Collapse, Grid } from 'antd'
 import { DeleteOutlined, UploadOutlined, ReloadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import Link from 'next/link'
@@ -95,6 +95,9 @@ export default function EventHistoryPage() {
   const [highlightId, setHighlightId] = useState(null)
   const [highlightGpxId, setHighlightGpxId] = useState(null)
   const expandInitialized = useRef(false)
+  // Below md (768px) the nested tables don't fit — render stacked cards instead
+  const screens = Grid.useBreakpoint()
+  const isMobile = screens.md === false
 
   const load = () => {
     setLoading(true)
@@ -382,6 +385,82 @@ export default function EventHistoryPage() {
     },
   ]
 
+  // Phone layout: month → ride → event as stacked blocks, no horizontal scroll
+  const deleteButton = id => (
+    <Popconfirm
+      title="Delete this event?"
+      description="This cannot be undone."
+      onConfirm={() => handleDelete(id)}
+      okText="Delete"
+      okButtonProps={{ danger: true }}
+    >
+      <Button type="text" danger icon={<DeleteOutlined />} size="small" />
+    </Popconfirm>
+  )
+
+  const mobileEvent = (e, showTime) => (
+    <div
+      key={e.id}
+      {...(e.id === highlightId ? { 'data-highlight': 'true' } : {})}
+      style={{
+        padding: '8px 0',
+        borderTop: '1px solid #f0f0f0',
+        background: e.id === highlightId ? '#fffde7' : undefined,
+      }}
+    >
+      {showTime && <Text type="secondary" style={{ fontSize: 12 }}>{eventTime(e)?.toLocaleTimeString() ?? '—'}</Text>}
+      {eventRow(e)}
+      <Space size={8} style={{ marginTop: 4 }}>
+        <Tag color={e.confirmed ? 'success' : 'default'}>{e.confirmed ? 'Confirmed' : 'Unconfirmed'}</Tag>
+        <Link href={`/events/${e.id}`}>View</Link>
+        {deleteButton(e.id)}
+      </Space>
+    </div>
+  )
+
+  const mobileRide = ride => {
+    const gpxFileId = ride.events[0]?.gpx_file_id
+    const highlighted = ride.events[0]?.gpx_file_id === highlightGpxId
+    return (
+      <div
+        key={ride.key}
+        {...(highlighted ? { 'data-highlight': 'true' } : {})}
+        style={{
+          padding: '10px 0',
+          borderBottom: '1px solid #e8e8e8',
+          background: highlighted ? '#fffde7' : undefined,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <Text strong style={{ flex: 1, minWidth: 0 }}>{ride.label}</Text>
+          {ride.count > 1 && <Badge count={ride.count} color="#d32f2f" />}
+          <Button
+            type="text"
+            icon={<ReloadOutlined />}
+            size="small"
+            loading={rerunningId === gpxFileId}
+            onClick={() => handleRerun(gpxFileId)}
+            title="Re-run detection"
+          />
+        </div>
+        {ride.events.map(e => mobileEvent(e, ride.count > 1))}
+      </div>
+    )
+  }
+
+  const mobileList = (
+    <Collapse
+      activeKey={expandedMonths}
+      onChange={keys => setExpandedMonths(Array.isArray(keys) ? keys : [keys])}
+      items={monthGroups.map(m => ({
+        key: m.key,
+        label: <Text strong>{m.label}</Text>,
+        extra: <Badge count={m.count} color="#d32f2f" showZero />,
+        children: m.rides.map(mobileRide),
+      }))}
+    />
+  )
+
   const monthColumns = [
     {
       title: 'Month',
@@ -495,7 +574,7 @@ export default function EventHistoryPage() {
           </Space>
         }
       >
-        <Table
+        {isMobile ? mobileList : <Table
           rowKey="key"
           columns={monthColumns}
           dataSource={monthGroups}
@@ -537,7 +616,7 @@ export default function EventHistoryPage() {
               />
             ),
           }}
-        />
+        />}
       </Card>
 
     </Space>
