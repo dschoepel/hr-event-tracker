@@ -6,7 +6,7 @@ import './globals.css'
 
 export const metadata = {
   title: 'HR Event Tracker',
-  description: 'Tachycardia event detection from cycling GPX files',
+  description: 'Detect, review and share unusual heart-rate episodes from cycling GPX files',
 }
 
 export default function RootLayout({ children }) {

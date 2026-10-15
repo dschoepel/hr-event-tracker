@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- README rewritten to describe what the app actually does (episode detection, review, doctor report, share links); the page description no longer says "Tachycardia"
+
 ## [1.3.6] - 2026-10-14
 
 ### Fixed
