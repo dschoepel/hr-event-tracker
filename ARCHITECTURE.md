@@ -19,8 +19,8 @@ HR Event Tracker detects and logs unusual heart rate episodes from cycling worko
 | Database | SQLite via `node:sqlite` (Node.js built-in, no ORM) |
 | PDF generation | Puppeteer Core + system Chromium (Alpine) |
 | Auth | Single owner password + time-limited doctor share links (`lib/auth.js`, signed cookies, no session store) |
-| Hosting | Self-hosted VPS (Docker, Alpine-based image) |
-| CI/CD | GitHub Actions → GHCR → deploy script over SSH |
+| Hosting | Self-hosted Docker (Alpine-based image), run as a Dockhand-managed stack behind nginx |
+| CI/CD | Version tag → GitHub Actions → GHCR image → redeploy the stack in Dockhand |
 
 ---
 
